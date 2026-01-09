@@ -1,10 +1,6 @@
 package com.labs.systemdesignandroid.core.ui.composables
 
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -32,19 +28,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedFilterChip
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -72,20 +72,18 @@ import com.labs.systemdesignandroid.domain.Movie
 import com.labs.systemdesignandroid.domain.SortOrder
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MovieList(
     movies: List<Movie>,
     searchQuery: String,
     onSearchQueryChanged: (String) -> Unit,
     onMovieClick: (Movie) -> Unit,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
+    onToggleFavorite: (Movie) -> Unit,
     modifier: Modifier = Modifier,
     onSortOrderSelected: (SortOrder) -> Unit = {},
     genres: List<String>,
     selectedGenres: Set<String>,
-    onToggle: (String) -> Unit
+    onToggleGenre: (String) -> Unit
 ) {
     var isSearchExpanded by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -143,7 +141,7 @@ fun MovieList(
         GenreChipsRow(
             genres = genres,
             selectedGenres = selectedGenres,
-            onToggle = onToggle
+            onToggle = onToggleGenre
         )
 
         Spacer(Modifier.height(12.dp))
@@ -154,8 +152,7 @@ fun MovieList(
             items(movies, key = { it.id }) { movie ->
                 MovieItem(
                     movie = movie,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedVisibilityScope = animatedVisibilityScope,
+                    onToggleFavorite = { onToggleFavorite(movie) },
                     modifier = Modifier
                         .animateItem()
                         .clickable { onMovieClick(movie) })
@@ -185,46 +182,42 @@ fun GenreChipsRow(
     }
 }
 
-
-
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MovieDetailOverlay(
     movie: Movie,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
-    collapsedLines: Int = 4,
+    onToggleFavorite: (Movie) -> Unit,
     onDismiss: () -> Unit
 ) {
     val offsetY = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
-
     val dismissThreshold = 280f
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .offset { IntOffset(0, offsetY.value.toInt()) }
-        .graphicsLayer {
-            alpha = 1f - (kotlin.math.abs(offsetY.value) / 1200f).coerceIn(0f, 0.15f)
-        }
-        .draggable(orientation = Orientation.Vertical, state = rememberDraggableState { delta ->
-            scope.launch {
-                offsetY.snapTo(
-                    (offsetY.value + delta * 0.6f).coerceIn(-600f, 600f)
-                )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .offset { IntOffset(0, offsetY.value.toInt()) }
+            .graphicsLayer {
+                alpha = 1f - (kotlin.math.abs(offsetY.value) / 1200f).coerceIn(0f, 0.15f)
             }
-        }, onDragStopped = { velocity ->
-            scope.launch {
-                if (kotlin.math.abs(offsetY.value) > dismissThreshold || kotlin.math.abs(
-                        velocity
-                    ) > 1500f
-                ) {
-                    onDismiss()
-                } else {
-                    offsetY.animateTo(0f)
+            .draggable(orientation = Orientation.Vertical, state = rememberDraggableState { delta ->
+                scope.launch {
+                    offsetY.snapTo(
+                        (offsetY.value + delta * 0.6f).coerceIn(-600f, 600f)
+                    )
                 }
-            }
-        })) {
+            }, onDragStopped = { velocity ->
+                scope.launch {
+                    if (kotlin.math.abs(offsetY.value) > dismissThreshold || kotlin.math.abs(
+                            velocity
+                        ) > 1500f
+                    ) {
+                        onDismiss()
+                    } else {
+                        offsetY.animateTo(0f)
+                    }
+                }
+            })
+    ) {
 
         // Background image
         AsyncImage(
@@ -247,14 +240,37 @@ fun MovieDetailOverlay(
                 )
         )
 
-        // Static content
+        // Mark as Favorite Button
+        OutlinedButton(
+            onClick = { onToggleFavorite(movie) },
+            modifier = Modifier
+                .wrapContentSize()
+                .padding(end = 12.dp, top = 12.dp)
+                .align(Alignment.TopEnd),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = Color.White
+            ),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(
+                if (movie.isFavorite) "Remove from" else "Mark as",
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.width(8.dp))
+            Icon(
+                if (movie.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                contentDescription = null,
+                tint = if (movie.isFavorite) Color.Red else LocalContentColor.current
+            )
+        }
+        // Details content
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(24.dp)
                 .fillMaxWidth()
         ) {
-
             Text(
                 text = movie.name,
                 style = MaterialTheme.typography.headlineLarge,
@@ -283,13 +299,11 @@ fun MovieDetailOverlay(
                         fontWeight = FontWeight.Bold
                     )
                 }
-
                 Text(
                     text = "${movie.year}",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White.copy(alpha = 0.8f)
                 )
-
                 Text(
                     text = "${movie.durationMinutes} min",
                     style = MaterialTheme.typography.titleMedium,
@@ -319,6 +333,7 @@ fun MovieDetailOverlay(
                 color = Color.White.copy(alpha = 0.9f),
                 lineHeight = 26.sp,
                 modifier = Modifier
+                    .height(120.dp)
                     .verticalScroll(rememberScrollState())
                     .clickable {
                         clickEnabled = !clickEnabled
@@ -328,7 +343,6 @@ fun MovieDetailOverlay(
         }
     }
 }
-
 
 @Composable
 fun AddMovieDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
@@ -401,64 +415,63 @@ fun SortMenu(onSortOrderSelected: (SortOrder) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MovieItem(
-    movie: Movie,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
-    modifier: Modifier = Modifier
+    movie: Movie, onToggleFavorite: (Movie) -> Unit, modifier: Modifier = Modifier
 ) {
-    with(sharedTransitionScope) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(16.dp), verticalAlignment = Alignment.CenterVertically
-        ) {
-            AsyncImage(
-                model = movie.imageUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(60.dp, 90.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .sharedElement(
-                        rememberSharedContentState(key = "movie_image_${movie.id}"),
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        boundsTransform = { _, _ -> tween(400) }),
-                contentScale = ContentScale.Crop)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(16.dp), verticalAlignment = Alignment.CenterVertically
+    ) {
+        AsyncImage(
+            model = movie.imageUrl,
+            contentDescription = null,
+            modifier = Modifier
+                .size(60.dp, 90.dp)
+                .clip(RoundedCornerShape(4.dp)),
+            contentScale = ContentScale.Crop
+        )
 
-            Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(16.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = movie.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = movie.name,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "${movie.year} • ${movie.genres.joinToString(", ")}",
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Star,
+                    contentDescription = null,
+                    tint = Color(0xFFFFC107),
+                    modifier = Modifier.size(14.dp)
                 )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "${movie.year} • ${movie.genres.joinToString(", ")}",
+                    text = movie.rating.toString(),
                     style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Star,
-                        contentDescription = null,
-                        tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = movie.rating.toString(),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
             }
+        }
+
+        IconButton(onClick = { onToggleFavorite(movie) }) {
+            Icon(
+                imageVector = if (movie.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                contentDescription = "Favorite",
+                tint = if (movie.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

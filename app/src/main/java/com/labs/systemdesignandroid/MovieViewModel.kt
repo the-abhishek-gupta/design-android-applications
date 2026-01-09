@@ -7,6 +7,7 @@ import com.labs.systemdesignandroid.domain.DeleteMovieUseCase
 import com.labs.systemdesignandroid.domain.GetMoviesUseCase
 import com.labs.systemdesignandroid.domain.Movie
 import com.labs.systemdesignandroid.domain.SortOrder
+import com.labs.systemdesignandroid.domain.ToggleFavoriteUseCase
 import com.labs.systemdesignandroid.domain.UpdateMovieUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +28,8 @@ class MovieViewModel @Inject constructor(
     private val getMoviesUseCase: GetMoviesUseCase,
     private val addMovieUseCase: AddMovieUseCase,
     private val deleteMovieUseCase: DeleteMovieUseCase,
-    private val updateMovieUseCase: UpdateMovieUseCase
+    private val updateMovieUseCase: UpdateMovieUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
 ) : ViewModel() {
 
     private val _sortOrder = MutableStateFlow(SortOrder.NONE)
@@ -56,8 +58,6 @@ class MovieViewModel @Inject constructor(
                 initialValue = emptyList()
             )
 
-
-
     val movies: StateFlow<List<Movie>> = combine(
         getMoviesUseCase(),
         _sortOrder,
@@ -70,7 +70,8 @@ class MovieViewModel @Inject constructor(
         } else {
             movies.filter { movie ->
                 movie.name.contains(query, ignoreCase = true) ||
-                        movie.genres.any { it.contains(query, ignoreCase = true) }
+                        movie.genres.any { it.contains(query, ignoreCase = true) } ||
+                        movie.description.contains(query, ignoreCase = true)
             }
         }
 
@@ -105,6 +106,12 @@ class MovieViewModel @Inject constructor(
 
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
+    }
+
+    fun toggleFavorite(movie: Movie) {
+        viewModelScope.launch {
+            toggleFavoriteUseCase(movie)
+        }
     }
 
     fun addMovie(name: String, genre: String) {

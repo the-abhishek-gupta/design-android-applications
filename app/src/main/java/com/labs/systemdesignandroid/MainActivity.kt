@@ -31,7 +31,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -120,21 +119,21 @@ fun MainNavigation(viewModel: MovieViewModel) {
 fun MovieScreen(viewModel: MovieViewModel, isCurrentPage: Boolean) {
     val movies by viewModel.movies.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val genres by viewModel.allGenres.collectAsStateWithLifecycle()
+    val selectedGenres by viewModel.selectedGenres.collectAsStateWithLifecycle()
+    
+    var selectedMovieId by remember { mutableStateOf<Int?>(null) }
     var showAddDialog by remember { mutableStateOf(false) }
-    var selectedMovie by remember { mutableStateOf<Movie?>(null) }
-    val genres by viewModel.allGenres.collectAsState()
-    val selectedGenres by viewModel.selectedGenres.collectAsState()
 
-    // Reset selectedMovie when navigating away from this screen
+    // Reset selection when navigating away
     LaunchedEffect(isCurrentPage) {
         if (!isCurrentPage) {
-            selectedMovie = null
+            selectedMovieId = null
         }
     }
 
     SharedTransitionLayout {
-        // Stable root scope for the list
-        AnimatedVisibility(visible = true, label = "root_visibility") {
+        AnimatedVisibility(visible = true, label = "root") {
             val listScope = this
             Box(modifier = Modifier.fillMaxSize()) {
                 Scaffold(
@@ -149,12 +148,13 @@ fun MovieScreen(viewModel: MovieViewModel, isCurrentPage: Boolean) {
                         movies = movies,
                         genres = genres,
                         selectedGenres = selectedGenres,
-                        onToggle = viewModel::onGenreToggled,
+                        onToggleGenre = viewModel::onGenreToggled,
                         searchQuery = searchQuery,
                         onSearchQueryChanged = { viewModel.onSearchQueryChanged(it) },
-                        onMovieClick = { selectedMovie = it },
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedVisibilityScope = listScope,
+                        onMovieClick = { selectedMovieId = it.id },
+                        onToggleFavorite = { movie -> viewModel.toggleFavorite(movie) },
+//                        sharedTransitionScope = this@SharedTransitionLayout,
+//                        animatedVisibilityScope = listScope,
                         modifier = Modifier.padding(innerPadding),
                         onSortOrderSelected = { viewModel.onSortOrderSelected(it) }
                     )
@@ -170,21 +170,25 @@ fun MovieScreen(viewModel: MovieViewModel, isCurrentPage: Boolean) {
                     }
                 }
 
-                // Immersive Detail Overlay using AnimatedContent
+                // FIX: Use selectedMovieId as targetState so changes to movie data (like favorite status)
+                // don't trigger the entire AnimatedContent transition, only a recomposition.
                 AnimatedContent(
-                    targetState = selectedMovie,
-                    label = "detail_transition",
-                    transitionSpec = {
-                        fadeIn() togetherWith fadeOut()
-                    }
-                ) { movie ->
-                    if (movie != null) {
-                        MovieDetailOverlay(
-                            movie = movie,
-                            sharedTransitionScope = this@SharedTransitionLayout,
-                            animatedVisibilityScope = this@AnimatedContent,
-                            onDismiss = { selectedMovie = null }
-                        )
+                    targetState = selectedMovieId,
+                    label = "detail",
+                    transitionSpec = { fadeIn() togetherWith fadeOut() }
+                ) { id ->
+                    if (id != null) {
+                        // Retrieve latest movie state from the list
+                        val movie = movies.find { it.id == id }
+                        if (movie != null) {
+                            MovieDetailOverlay(
+                                movie = movie,
+//                                sharedTransitionScope = this@SharedTransitionLayout,
+//                                animatedVisibilityScope = this@AnimatedContent,
+                                onToggleFavorite = { viewModel.toggleFavorite(it) },
+                                onDismiss = { selectedMovieId = null }
+                            )
+                        }
                     }
                 }
             }

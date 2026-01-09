@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import javax.inject.Inject
@@ -18,6 +17,7 @@ interface MovieRepository {
     fun getMovies(): Flow<List<Movie>>
     suspend fun addMovie(movie: Movie)
     suspend fun deleteMovie(movie: Movie)
+    suspend fun updateMovie(movie: Movie)
 }
 
 @Singleton
@@ -39,6 +39,10 @@ class MovieRepositoryImpl @Inject constructor(
 
     override suspend fun deleteMovie(movie: Movie) {
         movieDao.deleteMovie(movie.toEntity())
+    }
+
+    override suspend fun updateMovie(movie: Movie) {
+        movieDao.updateMovie(movie.toEntity())
     }
 
     private suspend fun initializeDatabaseIfNeeded() {

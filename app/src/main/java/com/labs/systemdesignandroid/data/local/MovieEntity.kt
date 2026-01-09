@@ -13,7 +13,8 @@ data class MovieEntity(
     val rating: Double,
     val year: Int,
     val imageUrl: String,
-    val description: String
+    val description: String,
+    val isFavorite: Boolean = false,
 )
 
 fun MovieEntity.toDomain() = Movie(
@@ -24,7 +25,8 @@ fun MovieEntity.toDomain() = Movie(
     rating = rating,
     year = year,
     imageUrl = imageUrl,
-    description = description
+    description = description,
+    isFavorite = isFavorite,
 )
 
 fun Movie.toEntity() = MovieEntity(
@@ -35,5 +37,6 @@ fun Movie.toEntity() = MovieEntity(
     rating = rating,
     year = year,
     imageUrl = imageUrl,
-    description = description
+    description = description,
+    isFavorite = isFavorite,
 )
