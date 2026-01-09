@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.random.Random
@@ -35,12 +36,36 @@ class MovieViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
+    private val _selectedGenres = MutableStateFlow<Set<String>>(emptySet())
+    val selectedGenres: StateFlow<Set<String>> = _selectedGenres
+
+    fun onGenreToggled(genre: String) {
+        _selectedGenres.update { current ->
+            if (genre in current) current - genre else current + genre
+        }
+    }
+
+    val allGenres: StateFlow<List<String>> =
+        getMoviesUseCase()
+            .map { movies ->
+                movies.flatMap { it.genres }.toSet().sorted()
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+
+
+
     val movies: StateFlow<List<Movie>> = combine(
         getMoviesUseCase(),
         _sortOrder,
-        _searchQuery
-    ) { movies, sortOrder, query ->
-        val filtered = if (query.isBlank()) {
+        _searchQuery,
+        _selectedGenres
+    ) { movies, sortOrder, query, selectedGenres ->
+
+        val searched = if (query.isBlank()) {
             movies
         } else {
             movies.filter { movie ->
@@ -49,18 +74,28 @@ class MovieViewModel @Inject constructor(
             }
         }
 
+        val genreFiltered = if (selectedGenres.isEmpty()) {
+            searched
+        } else {
+            searched.filter { movie ->
+                movie.genres.any { it in selectedGenres }
+            }
+        }
+
         when (sortOrder) {
-            SortOrder.NONE -> filtered
-            SortOrder.NAME_ASC -> filtered.sortedBy { it.name }
-            SortOrder.NAME_DESC -> filtered.sortedByDescending { it.name }
-            SortOrder.GRADE_ASC -> filtered.sortedBy { it.genres.firstOrNull() ?: "" }
-            SortOrder.GRADE_DESC -> filtered.sortedByDescending { it.genres.firstOrNull() ?: "" }
+            SortOrder.NONE -> genreFiltered
+            SortOrder.NAME_ASC -> genreFiltered.sortedBy { it.name }
+            SortOrder.NAME_DESC -> genreFiltered.sortedByDescending { it.name }
+            SortOrder.GRADE_ASC ->
+                genreFiltered.sortedBy { it.genres.firstOrNull().orEmpty() }
+            SortOrder.GRADE_DESC ->
+                genreFiltered.sortedByDescending { it.genres.firstOrNull().orEmpty() }
         }
     }
         .flowOn(Dispatchers.Default)
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList()
         )
 

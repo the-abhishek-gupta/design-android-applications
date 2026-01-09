@@ -31,6 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -121,6 +122,8 @@ fun MovieScreen(viewModel: MovieViewModel, isCurrentPage: Boolean) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
     var selectedMovie by remember { mutableStateOf<Movie?>(null) }
+    val genres by viewModel.allGenres.collectAsState()
+    val selectedGenres by viewModel.selectedGenres.collectAsState()
 
     // Reset selectedMovie when navigating away from this screen
     LaunchedEffect(isCurrentPage) {
@@ -144,6 +147,9 @@ fun MovieScreen(viewModel: MovieViewModel, isCurrentPage: Boolean) {
                 ) { innerPadding ->
                     MovieList(
                         movies = movies,
+                        genres = genres,
+                        selectedGenres = selectedGenres,
+                        onToggle = viewModel::onGenreToggled,
                         searchQuery = searchQuery,
                         onSearchQueryChanged = { viewModel.onSearchQueryChanged(it) },
                         onMovieClick = { selectedMovie = it },
