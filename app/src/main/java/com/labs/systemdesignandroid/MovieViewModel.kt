@@ -2,14 +2,14 @@ package com.labs.systemdesignandroid
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.labs.systemdesignandroid.domain.AddMovieUseCase
-import com.labs.systemdesignandroid.domain.DeleteMovieUseCase
-import com.labs.systemdesignandroid.domain.GetMoviesUseCase
 import com.labs.systemdesignandroid.domain.Movie
 import com.labs.systemdesignandroid.domain.SortOrder
-import com.labs.systemdesignandroid.domain.ToggleFavoriteUseCase
-import com.labs.systemdesignandroid.domain.ToggleWatchlistUseCase
-import com.labs.systemdesignandroid.domain.UpdateMovieUseCase
+import com.labs.systemdesignandroid.domain.usecase.AddMovieUseCase
+import com.labs.systemdesignandroid.domain.usecase.DeleteMovieUseCase
+import com.labs.systemdesignandroid.domain.usecase.GetMoviesUseCase
+import com.labs.systemdesignandroid.domain.usecase.ToggleFavoriteUseCase
+import com.labs.systemdesignandroid.domain.usecase.ToggleWatchlistUseCase
+import com.labs.systemdesignandroid.domain.usecase.UpdateMovieUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

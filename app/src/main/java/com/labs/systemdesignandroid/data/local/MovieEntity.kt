@@ -8,7 +8,7 @@ import com.labs.systemdesignandroid.domain.Movie
 data class MovieEntity(
     @PrimaryKey val id: Int,
     val name: String,
-    val genres: String, // Comma separated
+    val genres: String,
     val durationMinutes: Int,
     val rating: Double,
     val year: Int,

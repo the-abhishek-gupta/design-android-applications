@@ -2,10 +2,10 @@ package com.labs.systemdesignandroid.di
 
 import android.content.Context
 import androidx.room.Room
-import com.labs.systemdesignandroid.data.MovieRepository
-import com.labs.systemdesignandroid.data.MovieRepositoryImpl
 import com.labs.systemdesignandroid.data.local.AppDatabase
 import com.labs.systemdesignandroid.data.local.MovieDao
+import com.labs.systemdesignandroid.data.repository.MovieRepositoryImpl
+import com.labs.systemdesignandroid.domain.repository.MovieRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
