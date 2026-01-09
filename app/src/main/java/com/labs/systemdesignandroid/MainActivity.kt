@@ -17,12 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -41,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.labs.systemdesignandroid.core.ui.composables.AddMovieDialog
 import com.labs.systemdesignandroid.core.ui.composables.MovieDetailOverlay
 import com.labs.systemdesignandroid.core.ui.composables.MovieList
 import com.labs.systemdesignandroid.core.ui.theme.SystemDesignAndroidTheme
@@ -123,7 +120,6 @@ fun MovieScreen(viewModel: MovieViewModel, isCurrentPage: Boolean) {
     val selectedGenres by viewModel.selectedGenres.collectAsStateWithLifecycle()
     
     var selectedMovieId by remember { mutableStateOf<Int?>(null) }
-    var showAddDialog by remember { mutableStateOf(false) }
 
     // Reset selection when navigating away
     LaunchedEffect(isCurrentPage) {
@@ -138,11 +134,6 @@ fun MovieScreen(viewModel: MovieViewModel, isCurrentPage: Boolean) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    floatingActionButton = {
-                        FloatingActionButton(onClick = { showAddDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Add Movie")
-                        }
-                    }
                 ) { innerPadding ->
                     MovieList(
                         movies = movies,
@@ -156,16 +147,6 @@ fun MovieScreen(viewModel: MovieViewModel, isCurrentPage: Boolean) {
                         modifier = Modifier.padding(innerPadding),
                         onSortOrderSelected = { viewModel.onSortOrderSelected(it) }
                     )
-
-                    if (showAddDialog) {
-                        AddMovieDialog(
-                            onDismiss = { showAddDialog = false },
-                            onConfirm = { title, genre ->
-                                viewModel.addMovie(title, genre)
-                                showAddDialog = false
-                            }
-                        )
-                    }
                 }
 
                 AnimatedContent(
