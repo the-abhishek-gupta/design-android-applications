@@ -153,8 +153,6 @@ fun MovieScreen(viewModel: MovieViewModel, isCurrentPage: Boolean) {
                         onSearchQueryChanged = { viewModel.onSearchQueryChanged(it) },
                         onMovieClick = { selectedMovieId = it.id },
                         onToggleFavorite = { movie -> viewModel.toggleFavorite(movie) },
-//                        sharedTransitionScope = this@SharedTransitionLayout,
-//                        animatedVisibilityScope = listScope,
                         modifier = Modifier.padding(innerPadding),
                         onSortOrderSelected = { viewModel.onSortOrderSelected(it) }
                     )
@@ -170,22 +168,18 @@ fun MovieScreen(viewModel: MovieViewModel, isCurrentPage: Boolean) {
                     }
                 }
 
-                // FIX: Use selectedMovieId as targetState so changes to movie data (like favorite status)
-                // don't trigger the entire AnimatedContent transition, only a recomposition.
                 AnimatedContent(
                     targetState = selectedMovieId,
                     label = "detail",
                     transitionSpec = { fadeIn() togetherWith fadeOut() }
                 ) { id ->
                     if (id != null) {
-                        // Retrieve latest movie state from the list
                         val movie = movies.find { it.id == id }
                         if (movie != null) {
                             MovieDetailOverlay(
                                 movie = movie,
-//                                sharedTransitionScope = this@SharedTransitionLayout,
-//                                animatedVisibilityScope = this@AnimatedContent,
                                 onToggleFavorite = { viewModel.toggleFavorite(it) },
+                                onToggleWatchlist = { viewModel.toggleWatchlist(it) },
                                 onDismiss = { selectedMovieId = null }
                             )
                         }

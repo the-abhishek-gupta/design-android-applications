@@ -32,7 +32,9 @@ abstract class DataModule {
                 context,
                 AppDatabase::class.java,
                 "movie_database"
-            ).build()
+            )
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .build()
         }
 
         @Provides

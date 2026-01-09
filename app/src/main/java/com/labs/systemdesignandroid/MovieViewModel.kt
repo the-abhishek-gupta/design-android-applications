@@ -8,6 +8,7 @@ import com.labs.systemdesignandroid.domain.GetMoviesUseCase
 import com.labs.systemdesignandroid.domain.Movie
 import com.labs.systemdesignandroid.domain.SortOrder
 import com.labs.systemdesignandroid.domain.ToggleFavoriteUseCase
+import com.labs.systemdesignandroid.domain.ToggleWatchlistUseCase
 import com.labs.systemdesignandroid.domain.UpdateMovieUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +31,7 @@ class MovieViewModel @Inject constructor(
     private val deleteMovieUseCase: DeleteMovieUseCase,
     private val updateMovieUseCase: UpdateMovieUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val toggleWatchlistUseCase: ToggleWatchlistUseCase
 ) : ViewModel() {
 
     private val _sortOrder = MutableStateFlow(SortOrder.NONE)
@@ -114,6 +116,12 @@ class MovieViewModel @Inject constructor(
         }
     }
 
+    fun toggleWatchlist(movie: Movie) {
+        viewModelScope.launch {
+            toggleWatchlistUseCase(movie)
+        }
+    }
+    
     fun addMovie(name: String, genre: String) {
         viewModelScope.launch {
             val newMovie = Movie(
