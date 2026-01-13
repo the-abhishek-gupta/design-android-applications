@@ -1,6 +1,6 @@
 package com.labs.systemdesignandroid.domain.usecase
 
-import com.labs.systemdesignandroid.domain.Movie
+import com.labs.systemdesignandroid.domain.model.Movie
 import com.labs.systemdesignandroid.domain.repository.MovieRepository
 import javax.inject.Inject
 

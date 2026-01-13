@@ -1,4 +1,4 @@
-package com.labs.systemdesignandroid.domain
+package com.labs.systemdesignandroid.domain.model
 
 import kotlinx.serialization.Serializable
 

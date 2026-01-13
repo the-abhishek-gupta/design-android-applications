@@ -1,6 +1,6 @@
 package com.labs.systemdesignandroid.domain.repository
 
-import com.labs.systemdesignandroid.domain.Movie
+import com.labs.systemdesignandroid.domain.model.Movie
 import kotlinx.coroutines.flow.Flow
 
 interface MovieRepository {

@@ -2,7 +2,7 @@ package com.labs.systemdesignandroid.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.labs.systemdesignandroid.domain.Movie
+import com.labs.systemdesignandroid.domain.model.Movie
 
 @Entity(tableName = "movies")
 data class MovieEntity(

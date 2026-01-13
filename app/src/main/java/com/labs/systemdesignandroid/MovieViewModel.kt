@@ -2,7 +2,7 @@ package com.labs.systemdesignandroid
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.labs.systemdesignandroid.domain.Movie
+import com.labs.systemdesignandroid.domain.model.Movie
 import com.labs.systemdesignandroid.domain.SortOrder
 import com.labs.systemdesignandroid.domain.usecase.AddMovieUseCase
 import com.labs.systemdesignandroid.domain.usecase.DeleteMovieUseCase
@@ -24,6 +24,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.random.Random
 
+enum class MovieFilter {
+    ALL, WATCHLIST, FAVORITE
+}
+
 @HiltViewModel
 class MovieViewModel @Inject constructor(
     private val getMoviesUseCase: GetMoviesUseCase,
@@ -42,6 +46,13 @@ class MovieViewModel @Inject constructor(
 
     private val _selectedGenres = MutableStateFlow<Set<String>>(emptySet())
     val selectedGenres: StateFlow<Set<String>> = _selectedGenres
+
+    private val _movieFilter = MutableStateFlow(MovieFilter.ALL)
+    val movieFilter: StateFlow<MovieFilter> = _movieFilter
+
+    fun onFilterToggled(filter: MovieFilter) {
+        _movieFilter.value = filter
+    }
 
     fun onGenreToggled(genre: String) {
         _selectedGenres.update { current ->
@@ -64,13 +75,20 @@ class MovieViewModel @Inject constructor(
         getMoviesUseCase(),
         _sortOrder,
         _searchQuery,
-        _selectedGenres
-    ) { movies, sortOrder, query, selectedGenres ->
+        _selectedGenres,
+        _movieFilter
+    ) { movies, sortOrder, query, selectedGenres, filter ->
+
+        val filteredByMode = when (filter) {
+            MovieFilter.ALL -> movies
+            MovieFilter.WATCHLIST -> movies.filter { it.isInWatchlist }
+            MovieFilter.FAVORITE -> movies.filter { it.isFavorite }
+        }
 
         val searched = if (query.isBlank()) {
-            movies
+            filteredByMode
         } else {
-            movies.filter { movie ->
+            filteredByMode.filter { movie ->
                 movie.name.contains(query, ignoreCase = true) ||
                         movie.genres.any { it.contains(query, ignoreCase = true) } ||
                         movie.description.contains(query, ignoreCase = true)
@@ -102,6 +120,24 @@ class MovieViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
+    val watchlistMovies: StateFlow<List<Movie>> = getMoviesUseCase()
+        .map { movies -> movies.filter { it.isInWatchlist } }
+        .flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+
+    val favoriteMovies: StateFlow<List<Movie>> = getMoviesUseCase()
+        .map { movies -> movies.filter { it.isFavorite } }
+        .flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+
     fun onSortOrderSelected(order: SortOrder) {
         _sortOrder.value = order
     }
@@ -122,11 +158,11 @@ class MovieViewModel @Inject constructor(
         }
     }
     
-    fun addMovie(name: String, genre: String) {
+    fun addMovie(title: String, genre: String) {
         viewModelScope.launch {
             val newMovie = Movie(
                 id = Random.nextInt(),
-                name = name,
+                name = title,
                 genres = listOf(genre),
                 durationMinutes = 120,
                 rating = 0.0,

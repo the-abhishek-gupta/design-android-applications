@@ -1,7 +1,7 @@
 package com.labs.systemdesignandroid
 
 import app.cash.turbine.test
-import com.labs.systemdesignandroid.domain.Movie
+import com.labs.systemdesignandroid.domain.model.Movie
 import com.labs.systemdesignandroid.domain.SortOrder
 import com.labs.systemdesignandroid.domain.usecase.AddMovieUseCase
 import com.labs.systemdesignandroid.domain.usecase.DeleteMovieUseCase

@@ -3,7 +3,7 @@ package com.labs.systemdesignandroid.data.repository
 import com.labs.systemdesignandroid.data.local.MovieDao
 import com.labs.systemdesignandroid.data.local.toDomain
 import com.labs.systemdesignandroid.data.local.toEntity
-import com.labs.systemdesignandroid.domain.Movie
+import com.labs.systemdesignandroid.domain.model.Movie
 import com.labs.systemdesignandroid.domain.repository.MovieRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
