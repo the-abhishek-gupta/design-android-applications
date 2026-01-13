@@ -19,11 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.labs.systemdesignandroid.MovieViewModel
+import com.labs.systemdesignandroid.domain.model.MovieModel
 
 @Composable
 fun MovieScreen(
     viewModel: MovieViewModel,
-    isCurrentPage : Boolean
+    isCurrentPage: Boolean,
+    onRequireAuth: (afterSignIn: () -> Unit) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedMovieId by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -34,6 +36,14 @@ fun MovieScreen(
             selectedMovieId = null
         }
     }
+
+    val toggleFavoriteGuarded: (MovieModel) -> Unit = { movie ->
+        onRequireAuth { viewModel.onToggleFavorite(movie) }
+    }
+    val toggleWatchlistGuarded: (MovieModel) -> Unit = { movie ->
+        onRequireAuth { viewModel.onToggleWatchlist(movie) }
+    }
+
     Box(Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             MovieTopBar(
@@ -55,8 +65,8 @@ fun MovieScreen(
             MovieList(
                 movies = state.movies,
                 onMovieClick = { movie -> selectedMovieId = movie.id },
-                onToggleFavorite = viewModel::onToggleFavorite,
-                onToggleWatchlist = viewModel::onToggleWatchlist
+                onToggleFavorite = toggleFavoriteGuarded,
+                onToggleWatchlist = toggleWatchlistGuarded
             )
         }
 
@@ -72,8 +82,9 @@ fun MovieScreen(
             selectedMovie?.let { movie ->
                 MovieDetailsOverlay(
                     movie = movie,
-                    onToggleFavorite = viewModel::onToggleFavorite,
-                    onToggleWatchlist = viewModel::onToggleWatchlist,
+                    // ✅ Gate these actions behind auth too
+                    onToggleFavorite = { toggleFavoriteGuarded(movie) },
+                    onToggleWatchlist = { toggleWatchlistGuarded(movie) },
                     onDismiss = { selectedMovieId = null }
                 )
             }
