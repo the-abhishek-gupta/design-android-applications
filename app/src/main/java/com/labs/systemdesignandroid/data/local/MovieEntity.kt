@@ -16,6 +16,7 @@ data class MovieEntity(
     val description: String,
     val isFavorite: Boolean = false,
     val isInWatchlist: Boolean = false,
+    val userRating: Int = 0,
 )
 
 fun MovieEntity.toDomain() = MovieModel(
@@ -29,6 +30,7 @@ fun MovieEntity.toDomain() = MovieModel(
     description = description,
     isFavorite = isFavorite,
     isInWatchlist = isInWatchlist,
+    userRating = userRating,
 )
 
 fun MovieModel.toEntity() = MovieEntity(
@@ -42,4 +44,5 @@ fun MovieModel.toEntity() = MovieEntity(
     description = description,
     isFavorite = isFavorite,
     isInWatchlist = isInWatchlist,
+    userRating = userRating,
 )

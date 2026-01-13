@@ -14,4 +14,5 @@ data class MovieModel(
     val description: String,
     val isFavorite: Boolean = false,
     val isInWatchlist: Boolean = false,
+    val userRating: Int = 0
 )

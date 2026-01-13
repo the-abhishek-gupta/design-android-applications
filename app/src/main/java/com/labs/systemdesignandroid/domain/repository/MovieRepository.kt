@@ -8,4 +8,5 @@ interface MovieRepository {
     suspend fun refresh()
     suspend fun toggleFavorite(movieId: Int)
     suspend fun toggleWatchlist(movieId: Int)
+    suspend fun rateMovie(movieId: Int, rating: Int)
 }

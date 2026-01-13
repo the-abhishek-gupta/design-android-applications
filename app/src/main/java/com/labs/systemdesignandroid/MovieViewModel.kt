@@ -9,6 +9,7 @@ import com.labs.systemdesignandroid.domain.model.MovieModel
 import com.labs.systemdesignandroid.domain.usecase.FilterMoviesByGenreUseCase
 import com.labs.systemdesignandroid.domain.usecase.GetAllGenresUseCase
 import com.labs.systemdesignandroid.domain.usecase.ObserveMoviesUseCase
+import com.labs.systemdesignandroid.domain.usecase.RateMovieUseCase
 import com.labs.systemdesignandroid.domain.usecase.SearchMoviesUseCase
 import com.labs.systemdesignandroid.domain.usecase.SortMoviesUseCase
 import com.labs.systemdesignandroid.domain.usecase.ToggleFavoriteUseCase
@@ -35,7 +36,8 @@ class MovieViewModel @Inject constructor(
     private val searchMovies: SearchMoviesUseCase,
     private val sortMovies: SortMoviesUseCase,
     private val filterByGenre: FilterMoviesByGenreUseCase,
-    private val getAllGenres: GetAllGenresUseCase
+    private val getAllGenres: GetAllGenresUseCase,
+    private val rateMovie: RateMovieUseCase,
 ) : ViewModel() {
 
     private val TAG = "abhi.MovieViewModel"
@@ -113,5 +115,12 @@ class MovieViewModel @Inject constructor(
     fun onFilterChanged(filter: MovieFilter) {
         Log.d(TAG, "onFilterChanged: ${filter.name}")
         _filter.value = filter
+    }
+
+    fun onRateMovie(movieId: Int, rating: Int) {
+        Log.d(TAG, "onRateMovie: ${movieId} ${rating} stars")
+        viewModelScope.launch {
+            rateMovie(movieId, rating)
+        }
     }
 }

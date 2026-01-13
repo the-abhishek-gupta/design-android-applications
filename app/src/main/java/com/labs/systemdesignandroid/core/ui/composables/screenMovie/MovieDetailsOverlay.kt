@@ -60,6 +60,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MovieDetailsOverlay(
     movie: MovieModel,
+    onRate: (movieId: Int, rating: Int) -> Unit,
     onToggleFavorite: (MovieModel) -> Unit,
     onToggleWatchlist: (MovieModel) -> Unit,
     onDismiss: () -> Unit
@@ -122,6 +123,16 @@ fun MovieDetailsOverlay(
                         1f to Color.Black
                     )
                 )
+        )
+
+        StarRating(
+            modifier = Modifier
+                .padding(end = 12.dp, top = 12.dp)
+                .align(Alignment.TopStart),
+            rating = movie.userRating,
+            onRatingChanged = { newRating ->
+                onRate(movie.id, newRating)
+            }
         )
 
         // Favorite Button

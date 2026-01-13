@@ -31,4 +31,9 @@ class MovieRepositoryImpl @Inject constructor(
         val movie = local.getMovieById(movieId) ?: return
         local.upsert(listOf(movie.copy(isInWatchlist = !movie.isInWatchlist)))
     }
+
+    override suspend fun rateMovie(movieId: Int, rating: Int) {
+        val movie = local.getMovieById(movieId) ?: return
+        local.upsert(listOf(movie.copy(userRating = rating)))
+    }
 }

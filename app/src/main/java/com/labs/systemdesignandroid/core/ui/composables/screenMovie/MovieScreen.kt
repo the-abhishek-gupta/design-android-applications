@@ -85,7 +85,8 @@ fun MovieScreen(
                     // ✅ Gate these actions behind auth too
                     onToggleFavorite = { toggleFavoriteGuarded(movie) },
                     onToggleWatchlist = { toggleWatchlistGuarded(movie) },
-                    onDismiss = { selectedMovieId = null }
+                    onDismiss = { selectedMovieId = null },
+                    onRate = viewModel::onRateMovie,
                 )
             }
         }
