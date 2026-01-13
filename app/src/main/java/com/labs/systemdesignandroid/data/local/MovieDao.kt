@@ -19,6 +19,10 @@ interface MovieDao {
     @Query("SELECT COUNT(*) FROM movies")
     suspend fun getMovieCount(): Int
 
+
+    @Query("SELECT * FROM movies WHERE id = :id LIMIT 1")
+    suspend fun getMovieById(id: Int): MovieEntity?
+
     @Delete
     suspend fun deleteMovie(movie: MovieEntity)
 

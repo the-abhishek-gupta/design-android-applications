@@ -2,7 +2,7 @@ package com.labs.systemdesignandroid.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.labs.systemdesignandroid.domain.model.Movie
+import com.labs.systemdesignandroid.domain.model.MovieModel
 
 @Entity(tableName = "movies")
 data class MovieEntity(
@@ -18,7 +18,7 @@ data class MovieEntity(
     val isInWatchlist: Boolean = false,
 )
 
-fun MovieEntity.toDomain() = Movie(
+fun MovieEntity.toDomain() = MovieModel(
     id = id,
     name = name,
     genres = genres.split(",").filter { it.isNotBlank() },
@@ -31,7 +31,7 @@ fun MovieEntity.toDomain() = Movie(
     isInWatchlist = isInWatchlist,
 )
 
-fun Movie.toEntity() = MovieEntity(
+fun MovieModel.toEntity() = MovieEntity(
     id = id,
     name = name,
     genres = genres.joinToString(","),

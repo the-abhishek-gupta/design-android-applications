@@ -1,7 +1,7 @@
 package com.labs.systemdesignandroid
 
 import app.cash.turbine.test
-import com.labs.systemdesignandroid.domain.model.Movie
+import com.labs.systemdesignandroid.domain.model.MovieModel
 import com.labs.systemdesignandroid.domain.SortOrder
 import com.labs.systemdesignandroid.domain.usecase.AddMovieUseCase
 import com.labs.systemdesignandroid.domain.usecase.DeleteMovieUseCase
@@ -74,7 +74,7 @@ class MovieViewModelTest {
     @Test
     fun `initial movies are loaded correctly`() = runTest {
         viewModel.movies.test {
-            assertEquals(emptyList<Movie>(), awaitItem()) // Initial value
+            assertEquals(emptyList<MovieModel>(), awaitItem()) // Initial value
             assertEquals(testMovies, awaitItem())
         }
     }

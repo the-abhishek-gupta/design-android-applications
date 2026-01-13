@@ -3,7 +3,7 @@ package com.labs.systemdesignandroid.domain.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Movie(
+data class MovieModel(
     val id: Int,
     val name: String,
     val genres: List<String>,

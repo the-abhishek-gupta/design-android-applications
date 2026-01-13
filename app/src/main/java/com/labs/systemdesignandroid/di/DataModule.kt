@@ -1,5 +1,6 @@
 package com.labs.systemdesignandroid.di
 
+import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import com.labs.systemdesignandroid.data.local.AppDatabase
@@ -12,6 +13,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Module
@@ -21,25 +23,40 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindMovieRepository(
-        movieRepositoryImpl: MovieRepositoryImpl
+        impl: MovieRepositoryImpl
     ): MovieRepository
 
     companion object {
+
         @Provides
         @Singleton
-        fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-            return Room.databaseBuilder(
-                context,
+        fun provideAppDatabase(
+            app: Application,
+            callbackProvider: Provider<AppDatabase.AppDatabaseCallback>
+        ): AppDatabase {
+
+            lateinit var database: AppDatabase
+
+            database = Room.databaseBuilder(
+                app,
                 AppDatabase::class.java,
-                "movie_database"
+                "movie_database.db"
             )
-            .addMigrations(AppDatabase.MIGRATION_1_2)
-            .build()
+                .addCallback(
+                    callbackProvider.get().also { callback ->
+                        // ✅ THIS NOW COMPILES
+                        callback.databaseProvider = { database }
+                    }
+                )
+                .build()
+
+            return database
         }
 
         @Provides
-        fun provideMovieDao(database: AppDatabase): MovieDao {
-            return database.movieDao()
-        }
+        fun provideMovieDao(
+            database: AppDatabase
+        ): MovieDao = database.movieDao()
     }
 }
+

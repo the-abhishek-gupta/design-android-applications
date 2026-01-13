@@ -1,6 +1,6 @@
 package com.labs.systemdesignandroid.domain.usecase
 
-import com.labs.systemdesignandroid.domain.model.Movie
+import com.labs.systemdesignandroid.domain.model.MovieModel
 import com.labs.systemdesignandroid.domain.repository.MovieRepository
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -14,7 +14,7 @@ class MovieUseCasesTest {
     @Mock
     private lateinit var repository: MovieRepository
 
-    private val testMovie = Movie(
+    private val testMovie = MovieModel(
         id = 1,
         name = "Inception",
         genres = listOf("Sci-Fi"),

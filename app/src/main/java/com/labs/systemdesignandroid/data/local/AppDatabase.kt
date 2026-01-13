@@ -4,17 +4,33 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.labs.systemdesignandroid.di.ApplicationScope
+import jakarta.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
-@Database(entities = [MovieEntity::class], version = 2)
+@Database(
+    entities = [MovieEntity::class],
+    version = 1,
+    exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
+
     abstract fun movieDao(): MovieDao
 
-    companion object {
-        val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                // Add isInWatchlist columns to the movies table
-                db.execSQL("ALTER TABLE movies ADD COLUMN isInWatchlist INTEGER NOT NULL DEFAULT 0")
+    class AppDatabaseCallback @Inject constructor(
+        private val seeder: MovieSeeder,
+        @ApplicationScope private val appScope: CoroutineScope
+    ) : RoomDatabase.Callback() {
+
+        lateinit var databaseProvider: () -> AppDatabase
+
+        override fun onCreate(db: SupportSQLiteDatabase) {
+            super.onCreate(db)
+            appScope.launch {
+                seeder.seed(databaseProvider())
             }
         }
     }
 }
+
