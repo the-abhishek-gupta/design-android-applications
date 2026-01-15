@@ -80,13 +80,13 @@ fun MovieScreen(
             exit = fadeOut()
         ) {
             selectedMovie?.let { movie ->
-                MovieDetailsOverlay(
-                    movie = movie,
-                    // ✅ Gate these actions behind auth too
-                    onToggleFavorite = { toggleFavoriteGuarded(movie) },
-                    onToggleWatchlist = { toggleWatchlistGuarded(movie) },
-                    onDismiss = { selectedMovieId = null },
-                    onRate = viewModel::onRateMovie,
+                MovieDetailPagerOverlay(
+                    movies = state.movies,              // ✅ swipe within current list
+                    initialMovieId = movie.id,
+                    onToggleFavorite = viewModel::onToggleFavorite,
+                    onToggleWatchlist = viewModel::onToggleWatchlist,
+                    onUserRatingChanged = viewModel::onRateMovie,
+                    onDismiss = { selectedMovieId = null }
                 )
             }
         }

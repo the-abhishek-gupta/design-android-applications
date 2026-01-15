@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -61,7 +62,7 @@ fun StarRating(
         // Collapsed view (static)
         Row(
             modifier = Modifier
-                .fillMaxWidth()
+                .wrapContentSize()
                 .clip(RoundedCornerShape(12.dp))
                 .clickable {
                     editing = true
@@ -73,17 +74,9 @@ fun StarRating(
             StaticStars(rating = rating)
             Spacer(Modifier.width(10.dp))
             Text(
-                text = if (rating == 0) "Tap to rate" else "$rating/5",
+                text = if (rating == 0) "" else "$rating/5",
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White
-            )
-
-            Spacer(Modifier.weight(1f))
-
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Edit rating",
-                tint = Color.White.copy(alpha = 0.85f)
             )
         }
 
