@@ -1,4 +1,4 @@
-package com.labs.systemdesignandroid.di
+package com.labs.systemdesignandroid.di.module
 
 import dagger.Module
 import dagger.Provides

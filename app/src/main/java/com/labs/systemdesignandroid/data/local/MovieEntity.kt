@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import com.labs.systemdesignandroid.domain.model.MovieModel
 
 @Entity(tableName = "movies")
-data class MovieEntity(
+data class MovieCatalogEntity(
     @PrimaryKey val id: Int,
     val name: String,
     val genres: String,
@@ -13,36 +13,5 @@ data class MovieEntity(
     val rating: Double,
     val year: Int,
     val imageUrl: String,
-    val description: String,
-    val isFavorite: Boolean = false,
-    val isInWatchlist: Boolean = false,
-    val userRating: Int = 0,
-)
-
-fun MovieEntity.toDomain() = MovieModel(
-    id = id,
-    name = name,
-    genres = genres.split(",").filter { it.isNotBlank() },
-    durationMinutes = durationMinutes,
-    rating = rating,
-    year = year,
-    imageUrl = imageUrl,
-    description = description,
-    isFavorite = isFavorite,
-    isInWatchlist = isInWatchlist,
-    userRating = userRating,
-)
-
-fun MovieModel.toEntity() = MovieEntity(
-    id = id,
-    name = name,
-    genres = genres.joinToString(","),
-    durationMinutes = durationMinutes,
-    rating = rating,
-    year = year,
-    imageUrl = imageUrl,
-    description = description,
-    isFavorite = isFavorite,
-    isInWatchlist = isInWatchlist,
-    userRating = userRating,
+    val description: String
 )

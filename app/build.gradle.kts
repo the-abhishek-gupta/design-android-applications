@@ -62,6 +62,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.common)
+    implementation(libs.androidx.hilt.work)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -91,7 +94,7 @@ dependencies {
 
     // Firebase Auth
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
-    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-auth")
 
     // Credential Manager (Google Identity)
     implementation("androidx.credentials:credentials:1.3.0")
@@ -100,5 +103,7 @@ dependencies {
     // Google ID token credential helper
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+    implementation("com.google.firebase:firebase-firestore:24.11.0")
 
 }

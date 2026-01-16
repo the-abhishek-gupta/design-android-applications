@@ -1,7 +1,7 @@
 package com.labs.systemdesignandroid.data.remote
 
-import com.labs.systemdesignandroid.domain.model.MovieModel
+import com.labs.systemdesignandroid.data.local.MovieCatalogEntity
 
 interface MovieRemoteDataSource {
-    suspend fun fetchMovies(): List<MovieModel>
+    suspend fun fetchCatalog(): List<MovieCatalogEntity>
 }

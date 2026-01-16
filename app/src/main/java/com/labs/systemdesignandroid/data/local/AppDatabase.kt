@@ -10,7 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [MovieEntity::class],
+    entities = [MovieCatalogEntity::class, UserMovieStateEntity::class],
     version = 1,
     exportSchema = false
 )
@@ -23,14 +23,21 @@ abstract class AppDatabase : RoomDatabase() {
         @ApplicationScope private val appScope: CoroutineScope
     ) : RoomDatabase.Callback() {
 
-        lateinit var databaseProvider: () -> AppDatabase
+        // Set this from your Room builder (Provider-based setup)
+        var databaseProvider: (() -> AppDatabase)? = null
 
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             appScope.launch {
-                seeder.seed(databaseProvider())
+                val database = databaseProvider?.invoke() ?: return@launch
+
+                // Seed only if catalog is empty
+                val dao = database.movieDao()
+                val count = dao.getCatalogCount()
+                if (count == 0) {
+                    seeder.seed(database)
+                }
             }
         }
     }
 }
-

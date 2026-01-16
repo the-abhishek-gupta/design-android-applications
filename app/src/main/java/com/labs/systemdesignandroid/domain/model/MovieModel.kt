@@ -12,7 +12,10 @@ data class MovieModel(
     val year: Int,
     val imageUrl: String,
     val description: String,
-    val isFavorite: Boolean = false,
-    val isInWatchlist: Boolean = false,
-    val userRating: Int = 0
+
+    val isFavorite: Boolean,
+    val isInWatchlist: Boolean,
+    val userRating: Int,
+    val pendingSync: Boolean,
+    val remoteUpdatedAt: Long
 )

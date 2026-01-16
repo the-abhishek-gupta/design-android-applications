@@ -29,9 +29,11 @@ fun AppNavGraph(
                     navController.navigate("${Routes.AUTH}?return=$encoded")
                 }
 
-                AuthCoordinator.Event.SignedIn -> {
+                is AuthCoordinator.Event.SignedIn -> {
                     // Do nothing here; AuthRoute will handle returning (more reliable).
                 }
+
+                else -> {}
             }
         }
     }
@@ -63,7 +65,7 @@ fun AppNavGraph(
 //            SettingsScreen(navController = navController)
 //        }
 //
-        // ✅ Auth screen route (returns back)
+        // Auth screen route (returns back)
         composable(
             route = "${Routes.AUTH}?return={return}",
             arguments = listOf(navArgument("return") {

@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.*
@@ -253,7 +254,7 @@ private fun SettingsSection(
                             onCheckedChange = { if (!isSignedIn) onRequireSignIn() })
                     })
 
-                Divider(Modifier.padding(horizontal = 12.dp))
+                HorizontalDivider(Modifier.padding(horizontal = 12.dp))
 
                 ProfileRow(
                     icon = Icons.Outlined.BookmarkBorder,
@@ -261,7 +262,7 @@ private fun SettingsSection(
                     subtitle = if (isSignedIn) "Enabled" else "Sign in required",
                     onClick = { if (isSignedIn) Unit else onRequireSignIn() })
 
-                Divider(Modifier.padding(horizontal = 12.dp))
+                HorizontalDivider(Modifier.padding(horizontal = 12.dp))
 
                 ProfileRow(
                     icon = Icons.Outlined.PrivacyTip,
@@ -269,10 +270,10 @@ private fun SettingsSection(
                     subtitle = "Manage data & permissions",
                     onClick = { /* open privacy */ })
 
-                Divider(Modifier.padding(horizontal = 12.dp))
+                HorizontalDivider(Modifier.padding(horizontal = 12.dp))
 
                 ProfileRow(
-                    icon = Icons.Outlined.HelpOutline,
+                    icon = Icons.AutoMirrored.Outlined.HelpOutline,
                     title = "Help",
                     subtitle = "FAQ & support",
                     onClick = { /* open help */ })

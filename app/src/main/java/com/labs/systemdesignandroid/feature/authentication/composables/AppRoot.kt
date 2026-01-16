@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewModelScope
 import com.labs.systemdesignandroid.MovieViewModel
 import com.labs.systemdesignandroid.core.ui.composables.MainNavigation
 import com.labs.systemdesignandroid.feature.authentication.coordinator.AuthCoordinator
@@ -17,7 +18,12 @@ fun AppRoot(serverClientId: String, viewModel: MovieViewModel) {
         GoogleAuthRepository(context.applicationContext, serverClientId)
     }
     val coordinator = remember {
-        AuthCoordinator(isSignedIn = { authRepo.currentUser() != null })
+        AuthCoordinator(
+            isSignedIn = { authRepo.currentUser() != null },
+            syncNow = { viewModel.syncNow() },
+            logout = {viewModel.logOut()},
+            scope = viewModel.viewModelScope
+        )
     }
 
     CompositionLocalProvider(LocalAuthCoordinator provides coordinator) {

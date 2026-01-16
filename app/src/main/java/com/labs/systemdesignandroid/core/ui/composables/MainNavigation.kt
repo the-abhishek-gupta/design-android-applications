@@ -53,7 +53,10 @@ fun MainNavigation(
         coordinator.events.collect { e ->
             when (e) {
                 is AuthCoordinator.Event.NavigateToAuth -> showAuth = true
-                AuthCoordinator.Event.SignedIn -> Unit
+                is AuthCoordinator.Event.SignedIn -> Unit
+                else -> {
+
+                }
             }
         }
     }

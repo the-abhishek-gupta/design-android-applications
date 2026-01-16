@@ -1,6 +1,8 @@
 package com.labs.systemdesignandroid.data.local
 
 import android.content.Context
+import com.labs.systemdesignandroid.data.remote.MovieRemoteResponse
+import com.labs.systemdesignandroid.data.remote.toCatalogEntity
 import com.labs.systemdesignandroid.domain.model.MovieModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.json.Json
@@ -20,17 +22,15 @@ class JsonMovieSeeder @Inject constructor(
 
     override suspend fun seed(database: AppDatabase) {
         val dao = database.movieDao()
-        val jsonString = context
-            .assets
+        val jsonString = context.assets
             .open("movies.json")
             .bufferedReader()
             .use { it.readText() }
 
-        val root = json.parseToJsonElement(jsonString).jsonObject
-        val movies = json.decodeFromJsonElement<List<MovieModel>>(
-            root["movies"]!!
-        )
+        val response = json.decodeFromString<MovieRemoteResponse>(jsonString)
 
-        dao.insertMovies(movies.map { it.toEntity() })
+        val catalogEntities = response.movies.map { it.toCatalogEntity() }
+
+        dao.upsertCatalog(catalogEntities) //  seeds only catalog
     }
 }

@@ -10,12 +10,37 @@ class MovieLocalDataSourceImpl @Inject constructor(
 ) : MovieLocalDataSource {
 
     override fun observeMovies(): Flow<List<MovieModel>> =
-        dao.getAllMovies().map { it.map(MovieEntity::toDomain) }
+        dao.observeMoviesWithState().map { rows -> rows.map { it.toDomain() } }
 
-    override suspend fun upsert(movies: List<MovieModel>) {
-        dao.insertMovies(movies.map(MovieModel::toEntity))
+    override suspend fun upsertCatalog(movies: List<MovieCatalogEntity>) {
+        dao.upsertCatalog(movies)
     }
 
-    override suspend fun getMovieById(id: Int): MovieModel? =
-        dao.getMovieById(id)?.toDomain()
+    override suspend fun getUserState(movieId: Int): UserMovieStateEntity? =
+        dao.getUserState(movieId)
+
+    override suspend fun upsertUserState(state: UserMovieStateEntity) {
+        dao.upsertUserState(state)
+    }
+
+    override suspend fun getPendingUserState(): List<UserMovieStateEntity> =
+        dao.getPendingUserState()
+
+    override suspend fun markSynced(movieId: Int, remoteUpdatedAt: Long) {
+        dao.markSynced(movieId, remoteUpdatedAt)
+    }
+
+    override suspend fun applyRemoteState(
+        movieId: Int,
+        favorite: Boolean,
+        watchlist: Boolean,
+        rating: Int,
+        remoteUpdatedAt: Long
+    ) {
+        dao.applyRemoteState(movieId, favorite, watchlist, rating, remoteUpdatedAt)
+    }
+    override suspend fun clearUserState() {
+        dao.clearUserState()
+    }
+
 }

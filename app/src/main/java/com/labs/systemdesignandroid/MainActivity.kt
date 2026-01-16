@@ -11,7 +11,7 @@ import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Print
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +27,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
     object Home : Screen("home", "Home", Icons.Default.Home)
     object Movie : Screen("movie", "Movie", Icons.Default.Menu)
     object Settings : Screen("settings", "Settings", Icons.Default.Settings)
-    object Profile : Screen("profile", "Profile", Icons.Outlined.Print)
+    object Profile : Screen("profile", "Profile", Icons.Outlined.AccountCircle)
 }
 
 @AndroidEntryPoint

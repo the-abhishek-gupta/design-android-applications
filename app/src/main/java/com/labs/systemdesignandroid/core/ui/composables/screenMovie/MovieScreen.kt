@@ -81,7 +81,7 @@ fun MovieScreen(
         ) {
             selectedMovie?.let { movie ->
                 MovieDetailPagerOverlay(
-                    movies = state.movies,              // ✅ swipe within current list
+                    movies = state.movies,              // swipe within current list
                     initialMovieId = movie.id,
                     onToggleFavorite = viewModel::onToggleFavorite,
                     onToggleWatchlist = viewModel::onToggleWatchlist,

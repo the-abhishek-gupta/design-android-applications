@@ -1,7 +1,6 @@
-package com.labs.systemdesignandroid.di
+package com.labs.systemdesignandroid.di.module
 
 import android.app.Application
-import android.content.Context
 import androidx.room.Room
 import com.labs.systemdesignandroid.data.local.AppDatabase
 import com.labs.systemdesignandroid.data.local.MovieDao
@@ -11,7 +10,6 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Provider
 import javax.inject.Singleton
@@ -44,7 +42,7 @@ abstract class DataModule {
             )
                 .addCallback(
                     callbackProvider.get().also { callback ->
-                        // ✅ THIS NOW COMPILES
+                        // THIS NOW COMPILES
                         callback.databaseProvider = { database }
                     }
                 )
@@ -59,4 +57,3 @@ abstract class DataModule {
         ): MovieDao = database.movieDao()
     }
 }
-
