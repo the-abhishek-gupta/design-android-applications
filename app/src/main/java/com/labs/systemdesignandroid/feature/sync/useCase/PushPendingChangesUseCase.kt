@@ -12,7 +12,7 @@ class PushPendingChangesUseCase @Inject constructor(
 ) {
     suspend operator fun invoke() {
         val uid = auth.uidOrNull() ?: return
-        val pending = local.getPendingUserState()
+        val pending = local.getPendingUserState(userId = uid)
 
         for (state in pending) {
             remote.upsert(
@@ -26,7 +26,7 @@ class PushPendingChangesUseCase @Inject constructor(
             // Fetch server resolved timestamp (or listener will eventually)
             val resolved = remote.get(uid, state.movieId)?.updatedAtMillis ?: 0L
             if (resolved > 0L) {
-                local.markSynced(state.movieId, resolved)
+                local.markSynced(userId = uid, state.movieId, resolved)
             }
         }
     }

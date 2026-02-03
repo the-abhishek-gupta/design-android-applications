@@ -52,10 +52,21 @@ class MovieViewModel @Inject constructor(
             observeRemoteUserState().collect()
         }
     }
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
     fun syncNow() {
-        viewModelScope.launch { syncNowUseCase() }
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                // This should fetch latest remote data and update local source
+                syncNowUseCase()
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
     }
+
     fun logOut() {
         viewModelScope.launch { logoutUseCase() }
     }

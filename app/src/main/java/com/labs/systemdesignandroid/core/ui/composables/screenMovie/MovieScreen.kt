@@ -8,6 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,9 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.labs.systemdesignandroid.MovieFilter
 import com.labs.systemdesignandroid.MovieViewModel
 import com.labs.systemdesignandroid.domain.model.MovieModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieScreen(
     viewModel: MovieViewModel,
@@ -28,7 +34,9 @@ fun MovieScreen(
     onRequireAuth: (afterSignIn: () -> Unit) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     var selectedMovieId by rememberSaveable { mutableStateOf<Int?>(null) }
+    val refreshEnabled = state.filter == MovieFilter.ALL
 
     // Reset selection when navigating away
     LaunchedEffect(isCurrentPage) {
@@ -43,6 +51,10 @@ fun MovieScreen(
     val toggleWatchlistGuarded: (MovieModel) -> Unit = { movie ->
         onRequireAuth { viewModel.onToggleWatchlist(movie) }
     }
+    val rateMovieGuarded: (Int, Int) -> Unit = { movie, rating ->
+        onRequireAuth { viewModel.onRateMovie(movie, rating) }
+    }
+
 
     Box(Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -61,13 +73,28 @@ fun MovieScreen(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+            if (refreshEnabled) {
+                PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = { viewModel.syncNow() },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    MovieList(
+                        movies = state.movies,
+                        onMovieClick = { movie -> selectedMovieId = movie.id },
+                        onToggleFavorite = toggleFavoriteGuarded,
+                        onToggleWatchlist = toggleWatchlistGuarded
+                    )
+                }
+            } else {
+                MovieList(
+                    movies = state.movies,
+                    onMovieClick = { movie -> selectedMovieId = movie.id },
+                    onToggleFavorite = toggleFavoriteGuarded,
+                    onToggleWatchlist = toggleWatchlistGuarded
+                )
+            }
 
-            MovieList(
-                movies = state.movies,
-                onMovieClick = { movie -> selectedMovieId = movie.id },
-                onToggleFavorite = toggleFavoriteGuarded,
-                onToggleWatchlist = toggleWatchlistGuarded
-            )
         }
 
         val selectedMovie = remember(state.movies, selectedMovieId) {
@@ -83,9 +110,9 @@ fun MovieScreen(
                 MovieDetailPagerOverlay(
                     movies = state.movies,              // swipe within current list
                     initialMovieId = movie.id,
-                    onToggleFavorite = viewModel::onToggleFavorite,
-                    onToggleWatchlist = viewModel::onToggleWatchlist,
-                    onUserRatingChanged = viewModel::onRateMovie,
+                    onToggleFavorite = toggleFavoriteGuarded,
+                    onToggleWatchlist = toggleWatchlistGuarded,
+                    onUserRatingChanged = rateMovieGuarded,
                     onDismiss = { selectedMovieId = null }
                 )
             }

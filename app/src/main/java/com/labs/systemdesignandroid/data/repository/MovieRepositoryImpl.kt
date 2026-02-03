@@ -8,6 +8,7 @@ import com.labs.systemdesignandroid.domain.model.MovieModel
 import com.labs.systemdesignandroid.domain.repository.MovieRepository
 import com.labs.systemdesignandroid.feature.authentication.AuthUserProvider
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -22,7 +23,12 @@ class MovieRepositoryImpl @Inject constructor(
     private val auth: AuthUserProvider
 ) : MovieRepository {
 
-    override fun observeMovies(): Flow<List<MovieModel>> = local.observeMovies()
+    override fun observeMovies(): Flow<List<MovieModel>> =
+        auth.uidFlow.flatMapLatest { uid ->
+            // When logged out, show catalog with empty user state
+            val effectiveUserId = uid ?: "__guest__"
+            local.observeMovies(effectiveUserId)
+        }
 
     override suspend fun refreshCatalog() {
         local.upsertCatalog(catalogRemote.fetchCatalog())
@@ -30,17 +36,20 @@ class MovieRepositoryImpl @Inject constructor(
 
     // Local writes: set pendingSync=true
     override suspend fun toggleFavorite(movieId: Int) {
-        val s = local.getUserState(movieId) ?: UserMovieStateEntity(movieId = movieId)
+        val uid = auth.uidOrNull() ?: return
+        val s = local.getUserState(uid, movieId) ?: UserMovieStateEntity(userId = uid, movieId = movieId)
         local.upsertUserState(s.copy(isFavorite = !s.isFavorite, pendingSync = true))
     }
 
     override suspend fun toggleWatchlist(movieId: Int) {
-        val s = local.getUserState(movieId) ?: UserMovieStateEntity(movieId = movieId)
+        val uid = auth.uidOrNull() ?: return
+        val s = local.getUserState(userId = uid, movieId = movieId) ?: UserMovieStateEntity(userId = uid, movieId = movieId)
         local.upsertUserState(s.copy(isInWatchlist = !s.isInWatchlist, pendingSync = true))
     }
 
     override suspend fun rateMovie(movieId: Int, rating: Int) {
-        val s = local.getUserState(movieId) ?: UserMovieStateEntity(movieId = movieId)
+        val uid = auth.uidOrNull() ?: return
+        val s = local.getUserState(userId = uid, movieId) ?: UserMovieStateEntity(userId = uid, movieId = movieId)
         local.upsertUserState(s.copy(userRating = rating.coerceIn(0, 5), pendingSync = true))
     }
 
@@ -48,7 +57,7 @@ class MovieRepositoryImpl @Inject constructor(
     override suspend fun pushPending() {
         val uid = auth.uidOrNull() ?: return
 
-        val pending = local.getPendingUserState()
+        val pending = local.getPendingUserState(uid)
         for (state in pending) {
             userRemote.upsert(
                 uid = uid,
@@ -64,7 +73,7 @@ class MovieRepositoryImpl @Inject constructor(
             val resolved = remote?.updatedAtMillis ?: state.remoteUpdatedAt
 
             if (resolved > 0L) {
-                local.markSynced(state.movieId, resolved)
+                local.markSynced(userId = uid, state.movieId, resolved)
             }
         }
     }
@@ -84,7 +93,7 @@ class MovieRepositoryImpl @Inject constructor(
         val remoteMap = userRemote.fetchAll(uid) //ensure remote has fetchAll()
 
         for ((movieId, remote) in remoteMap) {
-            val localState = local.getUserState(movieId)
+            val localState = local.getUserState(userId = uid, movieId)
 
             // Don't overwrite local edits waiting to sync
             if (localState?.pendingSync == true) continue
@@ -97,7 +106,8 @@ class MovieRepositoryImpl @Inject constructor(
                         isInWatchlist = remote.watchlist,
                         userRating = remote.rating.coerceIn(0, 5),
                         pendingSync = false,
-                        remoteUpdatedAt = remote.updatedAtMillis
+                        remoteUpdatedAt = remote.updatedAtMillis,
+                        userId = uid,
                     )
                 )
             } else if (remote.updatedAtMillis > localState.remoteUpdatedAt && remote.updatedAtMillis > 0L) {
@@ -106,7 +116,8 @@ class MovieRepositoryImpl @Inject constructor(
                     favorite = remote.favorite,
                     watchlist = remote.watchlist,
                     rating = remote.rating.coerceIn(0, 5),
-                    remoteUpdatedAt = remote.updatedAtMillis
+                    remoteUpdatedAt = remote.updatedAtMillis,
+                    userId = uid,
                 )
             }
         }
@@ -120,7 +131,7 @@ class MovieRepositoryImpl @Inject constructor(
         return userRemote.listenAll(uid)
             .onEach { remoteMap ->
                 remoteMap.forEach { (movieId, remote) ->
-                    val localState = local.getUserState(movieId)
+                    val localState = local.getUserState(userId = uid, movieId)
 
                     // If we don't have local state, just apply remote
                     if (localState == null) {
@@ -131,7 +142,8 @@ class MovieRepositoryImpl @Inject constructor(
                                 isInWatchlist = remote.watchlist,
                                 userRating = remote.rating,
                                 pendingSync = false,
-                                remoteUpdatedAt = remote.updatedAtMillis
+                                remoteUpdatedAt = remote.updatedAtMillis,
+                                userId = uid,
                             )
                         )
                         return@forEach
@@ -147,7 +159,8 @@ class MovieRepositoryImpl @Inject constructor(
                             favorite = remote.favorite,
                             watchlist = remote.watchlist,
                             rating = remote.rating,
-                            remoteUpdatedAt = remote.updatedAtMillis
+                            remoteUpdatedAt = remote.updatedAtMillis,
+                            userId = uid,
                         )
                     }
                 }

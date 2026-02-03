@@ -4,9 +4,10 @@ import androidx.room.Entity
 
 @Entity(
     tableName = "user_movie_state",
-    primaryKeys = ["movieId"]
+    primaryKeys = ["userId", "movieId"]
 )
 data class UserMovieStateEntity(
+    val userId: String,
     val movieId: Int,
     val isFavorite: Boolean = false,
     val isInWatchlist: Boolean = false,

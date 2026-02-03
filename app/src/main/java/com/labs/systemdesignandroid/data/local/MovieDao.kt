@@ -7,44 +7,42 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
-
 @Dao
 interface MovieDao {
 
-    // Observe catalog + user state combined for UI
+    // Observe catalog + current user's state
     @Query("""
         SELECT
             m.id, m.name, m.genres, m.durationMinutes, m.rating, m.year, m.imageUrl, m.description,
             s.isFavorite, s.isInWatchlist, s.userRating, s.pendingSync, s.remoteUpdatedAt
         FROM movies m
-        LEFT JOIN user_movie_state s ON s.movieId = m.id
+        LEFT JOIN user_movie_state s ON s.movieId = m.id AND s.userId = :userId
     """)
-    fun observeMoviesWithState(): Flow<List<MovieWithUserStateRow>>
+    fun observeMoviesWithState(userId: String): Flow<List<MovieWithUserStateRow>>
 
-    // Catalog upsert
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertCatalog(movies: List<MovieCatalogEntity>)
 
-    // Get catalog item if you need it
-    @Query("SELECT * FROM movies WHERE id = :id LIMIT 1")
-    suspend fun getCatalogById(id: Int): MovieCatalogEntity?
-
-    // User-state helpers
-    @Query("SELECT * FROM user_movie_state WHERE movieId = :movieId LIMIT 1")
-    suspend fun getUserState(movieId: Int): UserMovieStateEntity?
+    // --- user state ---
+    @Query("""
+        SELECT * FROM user_movie_state 
+        WHERE userId = :userId AND movieId = :movieId 
+        LIMIT 1
+    """)
+    suspend fun getUserState(userId: String, movieId: Int): UserMovieStateEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertUserState(state: UserMovieStateEntity)
 
-    @Query("SELECT * FROM user_movie_state WHERE pendingSync = 1")
-    suspend fun getPendingUserState(): List<UserMovieStateEntity>
+    @Query("SELECT * FROM user_movie_state WHERE userId = :userId AND pendingSync = 1")
+    suspend fun getPendingUserState(userId: String): List<UserMovieStateEntity>
 
     @Query("""
         UPDATE user_movie_state
         SET pendingSync = 0, remoteUpdatedAt = :remoteUpdatedAt
-        WHERE movieId = :movieId
+        WHERE userId = :userId AND movieId = :movieId
     """)
-    suspend fun markSynced(movieId: Int, remoteUpdatedAt: Long)
+    suspend fun markSynced(userId: String, movieId: Int, remoteUpdatedAt: Long)
 
     @Query("""
         UPDATE user_movie_state
@@ -53,19 +51,20 @@ interface MovieDao {
             userRating = :rating,
             pendingSync = 0,
             remoteUpdatedAt = :remoteUpdatedAt
-        WHERE movieId = :movieId
+        WHERE userId = :userId AND movieId = :movieId
     """)
     suspend fun applyRemoteState(
+        userId: String,
         movieId: Int,
         favorite: Boolean,
         watchlist: Boolean,
         rating: Int,
         remoteUpdatedAt: Long
     )
-    @Query("DELETE FROM user_movie_state")
-    suspend fun clearUserState()
+
+    @Query("DELETE FROM user_movie_state WHERE userId = :userId")
+    suspend fun clearUserState(userId: String)
 
     @Query("SELECT COUNT(*) FROM movies")
     suspend fun getCatalogCount(): Int
-
 }

@@ -16,7 +16,7 @@ class PullRemoteUserStateUseCase @Inject constructor(
 
         val remoteMap = remote.fetchAll(uid)
         for ((movieId, r) in remoteMap) {
-            val localState = local.getUserState(movieId)
+            val localState = local.getUserState(userId = uid, movieId)
 
             // if local has pending changes, don't overwrite
             if (localState?.pendingSync == true) continue
@@ -24,6 +24,7 @@ class PullRemoteUserStateUseCase @Inject constructor(
             if (localState == null) {
                 local.upsertUserState(
                     UserMovieStateEntity(
+                        userId = uid,
                         movieId = movieId,
                         isFavorite = r.favorite,
                         isInWatchlist = r.watchlist,
@@ -34,6 +35,7 @@ class PullRemoteUserStateUseCase @Inject constructor(
                 )
             } else if (r.updatedAtMillis > localState.remoteUpdatedAt && r.updatedAtMillis > 0L) {
                 local.applyRemoteState(
+                    userId = uid,
                     movieId = movieId,
                     favorite = r.favorite,
                     watchlist = r.watchlist,

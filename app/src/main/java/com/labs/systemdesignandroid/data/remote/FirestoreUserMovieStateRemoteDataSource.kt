@@ -4,8 +4,10 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -16,23 +18,19 @@ class FirestoreUserMovieStateRemoteDataSource @Inject constructor(
 ) : UserMovieStateRemoteDataSource {
 
     private fun col(uid: String) =
-        firestore.collection("users")
-            .document(uid)
-            .collection("movie_state")
+        firestore.collection("users").document(uid).collection("movie_state")
 
-    override suspend fun upsert(uid: String, movieId: Int, favorite: Boolean, watchlist: Boolean, rating: Int) {
-        col(uid)
-            .document(movieId.toString())
-            .set(
-                mapOf(
-                    "favorite" to favorite,
-                    "watchlist" to watchlist,
-                    "rating" to rating.coerceIn(0, 5),
-                    "updatedAt" to FieldValue.serverTimestamp()
-                ),
-                SetOptions.merge()
-            )
-            .await()
+    override suspend fun upsert(
+        uid: String, movieId: Int, favorite: Boolean, watchlist: Boolean, rating: Int
+    ) {
+        col(uid).document(movieId.toString()).set(
+            mapOf(
+                "favorite" to favorite,
+                "watchlist" to watchlist,
+                "rating" to rating.coerceIn(0, 5),
+                "updatedAt" to FieldValue.serverTimestamp()
+            ), SetOptions.merge()
+        ).await()
     }
 
     override suspend fun get(uid: String, movieId: Int): UserMovieStateRemote? {
@@ -44,7 +42,9 @@ class FirestoreUserMovieStateRemoteDataSource @Inject constructor(
     override fun listenAll(uid: String): Flow<Map<Int, UserMovieStateRemote>> = callbackFlow {
         val reg = col(uid).addSnapshotListener { snap, err ->
             if (err != null) {
-                close(err)
+                // logout / auth change can cause permission denied -> ignore
+                // You can optionally log it:
+                // Log.d("Firestore", "listenAll error: ${err.code}")
                 return@addSnapshotListener
             }
             if (snap == null) return@addSnapshotListener
@@ -58,7 +58,7 @@ class FirestoreUserMovieStateRemoteDataSource @Inject constructor(
             trySend(map)
         }
         awaitClose { reg.remove() }
-    }
+    }.buffer(Channel.CONFLATED)
 
     private fun DocumentSnapshot.toRemoteOrNull(): UserMovieStateRemote? {
         val updatedAt = getTimestamp("updatedAt")?.toDate()?.time ?: 0L
@@ -73,6 +73,7 @@ class FirestoreUserMovieStateRemoteDataSource @Inject constructor(
             updatedAtMillis = updatedAt
         )
     }
+
     override suspend fun fetchAll(uid: String): Map<Int, UserMovieStateRemote> {
         val snap = col(uid).get().await()
         return snap.documents.mapNotNull { doc ->
