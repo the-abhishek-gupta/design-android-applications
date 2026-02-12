@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.pullToRefresh
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.labs.systemdesignandroid.MovieFilter
 import com.labs.systemdesignandroid.MovieViewModel
 import com.labs.systemdesignandroid.domain.model.MovieModel
+import com.labs.systemdesignandroid.domain.MovieReaction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +52,10 @@ fun MovieScreen(
     }
     val rateMovieGuarded: (Int, Int) -> Unit = { movie, rating ->
         onRequireAuth { viewModel.onRateMovie(movie, rating) }
+    }
+
+    val reactToMovieGuarded: (Int, MovieReaction, Boolean) -> Unit = { movie, reaction, isSelected ->
+        onRequireAuth { viewModel.onReactToMovie(movie, reaction, isSelected) }
     }
 
 
@@ -113,6 +116,7 @@ fun MovieScreen(
                     onToggleFavorite = toggleFavoriteGuarded,
                     onToggleWatchlist = toggleWatchlistGuarded,
                     onUserRatingChanged = rateMovieGuarded,
+                    onUserReactToMovie = reactToMovieGuarded,
                     onDismiss = { selectedMovieId = null }
                 )
             }

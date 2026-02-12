@@ -1,6 +1,7 @@
 package com.labs.systemdesignandroid.data.local
 
 import com.labs.systemdesignandroid.domain.model.MovieModel
+import com.labs.systemdesignandroid.domain.MovieReaction
 
 data class MovieWithUserStateRow(
     val id: Int,
@@ -15,6 +16,7 @@ data class MovieWithUserStateRow(
     val isFavorite: Boolean?,
     val isInWatchlist: Boolean?,
     val userRating: Int?,
+    val reactions: Set<MovieReaction>?,
     val pendingSync: Boolean?,
     val remoteUpdatedAt: Long?
 )
@@ -32,6 +34,7 @@ fun MovieWithUserStateRow.toDomain(): MovieModel =
         isFavorite = isFavorite ?: false,
         isInWatchlist = isInWatchlist ?: false,
         userRating = userRating ?: 0,
+        userReactions = reactions ?: emptySet(),
         pendingSync = pendingSync ?: false,
         remoteUpdatedAt = remoteUpdatedAt ?: 0L
     )

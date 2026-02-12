@@ -1,6 +1,7 @@
 package com.labs.systemdesignandroid.core.ui.composables.screenMovie
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -9,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.labs.systemdesignandroid.domain.model.MovieModel
+import com.labs.systemdesignandroid.domain.MovieReaction
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -18,7 +20,8 @@ fun MovieDetailPagerOverlay(
     onToggleFavorite: (MovieModel) -> Unit,
     onToggleWatchlist: (MovieModel) -> Unit,
     onUserRatingChanged: (movieId: Int, rating: Int) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onUserReactToMovie: (Int, MovieReaction, Boolean) -> Unit
 ) {
     if (movies.isEmpty()) return
 
@@ -53,6 +56,7 @@ fun MovieDetailPagerOverlay(
                 onToggleFavorite = onToggleFavorite,
                 onToggleWatchlist = onToggleWatchlist,
                 onRate = onUserRatingChanged,
+                onReact = onUserReactToMovie,
                 onDismiss = onDismiss
             )
         }

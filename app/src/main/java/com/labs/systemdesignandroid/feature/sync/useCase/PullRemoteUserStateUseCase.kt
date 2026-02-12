@@ -40,7 +40,8 @@ class PullRemoteUserStateUseCase @Inject constructor(
                     favorite = r.favorite,
                     watchlist = r.watchlist,
                     rating = r.rating,
-                    remoteUpdatedAt = r.updatedAtMillis
+                    remoteUpdatedAt = r.updatedAtMillis,
+                    reactions = r.reactions,
                 )
             }
         }

@@ -14,7 +14,7 @@ interface MovieDao {
     @Query("""
         SELECT
             m.id, m.name, m.genres, m.durationMinutes, m.rating, m.year, m.imageUrl, m.description,
-            s.isFavorite, s.isInWatchlist, s.userRating, s.pendingSync, s.remoteUpdatedAt
+            s.isFavorite, s.isInWatchlist, s.userRating, s.reactions, s.pendingSync, s.remoteUpdatedAt
         FROM movies m
         LEFT JOIN user_movie_state s ON s.movieId = m.id AND s.userId = :userId
     """)

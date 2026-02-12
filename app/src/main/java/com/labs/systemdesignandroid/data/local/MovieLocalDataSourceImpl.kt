@@ -1,6 +1,7 @@
 package com.labs.systemdesignandroid.data.local
 
 import com.labs.systemdesignandroid.domain.model.MovieModel
+import com.labs.systemdesignandroid.domain.MovieReaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -36,9 +37,22 @@ class MovieLocalDataSourceImpl @Inject constructor(
         favorite: Boolean,
         watchlist: Boolean,
         rating: Int,
+        reactions: Set<MovieReaction>,
         remoteUpdatedAt: Long
     ) {
-        dao.applyRemoteState(userId = userId, movieId, favorite, watchlist, rating, remoteUpdatedAt)
+        val existing = dao.getUserState(userId, movieId)
+        dao.upsertUserState(
+            UserMovieStateEntity(
+                userId = userId,
+                movieId = movieId,
+                isFavorite = favorite,
+                isInWatchlist = watchlist,
+                userRating = rating,
+                reactions = reactions,
+                pendingSync = false,
+                remoteUpdatedAt = remoteUpdatedAt
+            )
+        )
     }
     override suspend fun clearUserState(userId: String) {
         dao.clearUserState(userId = userId)

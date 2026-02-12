@@ -1,5 +1,6 @@
 package com.labs.systemdesignandroid.domain.model
 
+import com.labs.systemdesignandroid.domain.MovieReaction
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -16,6 +17,7 @@ data class MovieModel(
     val isFavorite: Boolean,
     val isInWatchlist: Boolean,
     val userRating: Int,
+    val userReactions: Set<MovieReaction>,
     val pendingSync: Boolean,
     val remoteUpdatedAt: Long
 )

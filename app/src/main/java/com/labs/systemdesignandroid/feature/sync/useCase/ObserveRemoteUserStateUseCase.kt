@@ -44,7 +44,8 @@ class ObserveRemoteUserStateUseCase @Inject constructor(
                             favorite = r.favorite,
                             watchlist = r.watchlist,
                             rating = r.rating.coerceIn(0, 5),
-                            remoteUpdatedAt = r.updatedAtMillis
+                            remoteUpdatedAt = r.updatedAtMillis,
+                            reactions = r.reactions,
                         )
                     }
                 }

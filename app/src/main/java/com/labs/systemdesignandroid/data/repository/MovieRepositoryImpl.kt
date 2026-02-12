@@ -7,6 +7,7 @@ import com.labs.systemdesignandroid.data.remote.UserMovieStateRemoteDataSource
 import com.labs.systemdesignandroid.domain.model.MovieModel
 import com.labs.systemdesignandroid.domain.repository.MovieRepository
 import com.labs.systemdesignandroid.feature.authentication.AuthUserProvider
+import com.labs.systemdesignandroid.domain.MovieReaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -51,6 +52,28 @@ class MovieRepositoryImpl @Inject constructor(
         val uid = auth.uidOrNull() ?: return
         val s = local.getUserState(userId = uid, movieId) ?: UserMovieStateEntity(userId = uid, movieId = movieId)
         local.upsertUserState(s.copy(userRating = rating.coerceIn(0, 5), pendingSync = true))
+    }
+
+    override suspend fun toggleReaction(
+        movieId: Int,
+        reaction: MovieReaction,
+        isSelected: Boolean
+    ) {
+        val userId = auth.uidOrNull() ?: return
+        val existingState = local.getUserState(userId, movieId) ?: UserMovieStateEntity(userId = userId, movieId = movieId)
+
+        val newReactions =  if (isSelected) {
+            existingState.reactions - reaction
+        } else {
+            existingState.reactions + reaction
+        }
+
+        local.upsertUserState(
+            existingState.copy(
+                reactions = newReactions,
+                pendingSync = true
+            )
+        )
     }
 
     // 1) Push pending local changes to Firestore (server timestamp)
@@ -108,6 +131,7 @@ class MovieRepositoryImpl @Inject constructor(
                         pendingSync = false,
                         remoteUpdatedAt = remote.updatedAtMillis,
                         userId = uid,
+                        reactions = remote.reactions
                     )
                 )
             } else if (remote.updatedAtMillis > localState.remoteUpdatedAt && remote.updatedAtMillis > 0L) {
@@ -118,6 +142,7 @@ class MovieRepositoryImpl @Inject constructor(
                     rating = remote.rating.coerceIn(0, 5),
                     remoteUpdatedAt = remote.updatedAtMillis,
                     userId = uid,
+                    reactions = remote.reactions,
                 )
             }
         }
@@ -143,6 +168,7 @@ class MovieRepositoryImpl @Inject constructor(
                                 userRating = remote.rating,
                                 pendingSync = false,
                                 remoteUpdatedAt = remote.updatedAtMillis,
+                                reactions =  remote.reactions,
                                 userId = uid,
                             )
                         )
@@ -161,6 +187,7 @@ class MovieRepositoryImpl @Inject constructor(
                             rating = remote.rating,
                             remoteUpdatedAt = remote.updatedAtMillis,
                             userId = uid,
+                            reactions = remote.reactions,
                         )
                     }
                 }

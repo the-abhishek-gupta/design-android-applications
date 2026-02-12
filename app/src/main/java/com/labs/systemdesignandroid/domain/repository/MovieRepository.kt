@@ -1,6 +1,7 @@
 package com.labs.systemdesignandroid.domain.repository
 
 import com.labs.systemdesignandroid.domain.model.MovieModel
+import com.labs.systemdesignandroid.domain.MovieReaction
 import kotlinx.coroutines.flow.Flow
 
 interface MovieRepository {
@@ -9,6 +10,7 @@ interface MovieRepository {
     suspend fun toggleFavorite(movieId: Int)
     suspend fun toggleWatchlist(movieId: Int)
     suspend fun rateMovie(movieId: Int, rating: Int)
+    suspend fun toggleReaction(movieId: Int, reaction: MovieReaction, isSelected: Boolean)
     suspend fun pushPending()
     suspend fun syncNow()
     fun observeRemoteSync(): Flow<Unit>

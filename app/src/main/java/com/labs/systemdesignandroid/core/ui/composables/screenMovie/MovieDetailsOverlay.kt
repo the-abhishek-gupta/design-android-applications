@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.labs.systemdesignandroid.domain.model.MovieModel
+import com.labs.systemdesignandroid.domain.MovieReaction
 import kotlinx.coroutines.launch
 
 @Composable
@@ -63,7 +64,8 @@ fun MovieDetailsOverlay(
     onRate: (movieId: Int, rating: Int) -> Unit,
     onToggleFavorite: (MovieModel) -> Unit,
     onToggleWatchlist: (MovieModel) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onReact: (Int, MovieReaction, Boolean) -> Unit
 ) {
     val offsetY = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
@@ -161,6 +163,12 @@ fun MovieDetailsOverlay(
                 .padding(24.dp)
                 .fillMaxWidth()
         ) {
+            MovieReactionBar(
+                reactions = movie.userReactions,
+                onReact = { reaction, selected ->
+                    onReact(movie.id, reaction, selected)
+                }
+            )
             Text(
                 text = movie.name,
                 style = MaterialTheme.typography.headlineLarge,

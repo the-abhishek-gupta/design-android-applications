@@ -1,6 +1,7 @@
 package com.labs.systemdesignandroid.data.local
 
 import com.labs.systemdesignandroid.domain.model.MovieModel
+import com.labs.systemdesignandroid.domain.MovieReaction
 import kotlinx.coroutines.flow.Flow
 
 interface MovieLocalDataSource {
@@ -22,6 +23,7 @@ interface MovieLocalDataSource {
         favorite: Boolean,
         watchlist: Boolean,
         rating: Int,
+        reactions: Set<MovieReaction>,
         remoteUpdatedAt: Long
     )
 }

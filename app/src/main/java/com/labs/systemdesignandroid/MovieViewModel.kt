@@ -1,6 +1,5 @@
 package com.labs.systemdesignandroid
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.labs.systemdesignandroid.data.MovieUiState
@@ -13,8 +12,10 @@ import com.labs.systemdesignandroid.domain.usecase.RateMovieUseCase
 import com.labs.systemdesignandroid.domain.usecase.SearchMoviesUseCase
 import com.labs.systemdesignandroid.domain.usecase.SortMoviesUseCase
 import com.labs.systemdesignandroid.domain.usecase.ToggleFavoriteUseCase
+import com.labs.systemdesignandroid.domain.usecase.ToggleReactionUseCase
 import com.labs.systemdesignandroid.domain.usecase.ToggleWatchlistUseCase
 import com.labs.systemdesignandroid.feature.authentication.LogoutUseCase
+import com.labs.systemdesignandroid.domain.MovieReaction
 import com.labs.systemdesignandroid.feature.sync.useCase.ObserveRemoteUserStateUseCase
 import com.labs.systemdesignandroid.feature.sync.useCase.SyncNowUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,6 +46,7 @@ class MovieViewModel @Inject constructor(
     private val observeRemoteUserState: ObserveRemoteUserStateUseCase,
     private val syncNowUseCase: SyncNowUseCase,
     private val logoutUseCase: LogoutUseCase,
+    private val reactionUseCase: ToggleReactionUseCase,
 ) : ViewModel() {
 
     init {
@@ -52,6 +54,7 @@ class MovieViewModel @Inject constructor(
             observeRemoteUserState().collect()
         }
     }
+
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
@@ -110,9 +113,17 @@ class MovieViewModel @Inject constructor(
             initialValue = MovieUiState(isLoading = true)
         )
 
-    fun onSearchChanged(query: String) { _searchQuery.value = query }
-    fun onSortOrderSelected(order: SortOrder) { _sortOrder.value = order }
-    fun onFilterChanged(filter: MovieFilter) { _filter.value = filter }
+    fun onSearchChanged(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun onSortOrderSelected(order: SortOrder) {
+        _sortOrder.value = order
+    }
+
+    fun onFilterChanged(filter: MovieFilter) {
+        _filter.value = filter
+    }
 
     fun onGenreToggled(genre: String) {
         _selectedGenres.update { current ->
@@ -130,5 +141,16 @@ class MovieViewModel @Inject constructor(
 
     fun onRateMovie(movieId: Int, rating: Int) {
         viewModelScope.launch { rateMovie(movieId, rating) }
+    }
+
+    fun onReactToMovie(movieId: Int, reaction: MovieReaction, isSelected: Boolean) {
+        viewModelScope.launch {
+            reactionUseCase(
+                movieId = movieId,
+                reaction = reaction,
+                isSelected = isSelected
+            )
+
+        }
     }
 }

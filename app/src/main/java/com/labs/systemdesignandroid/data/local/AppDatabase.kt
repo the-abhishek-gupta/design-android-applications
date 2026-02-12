@@ -2,7 +2,7 @@ package com.labs.systemdesignandroid.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
+import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.labs.systemdesignandroid.di.ApplicationScope
 import jakarta.inject.Inject
@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
     version = 1,
     exportSchema = false
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun movieDao(): MovieDao
