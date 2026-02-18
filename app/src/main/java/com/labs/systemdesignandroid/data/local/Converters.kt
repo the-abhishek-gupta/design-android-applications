@@ -24,14 +24,18 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromReactionList(list: Set<MovieReaction>?): String {
-        if (list.isNullOrEmpty()) return "[]"
-        return json.encodeToString(list)
+    fun fromReactionList(list: Set<MovieReaction>): String {
+        return list.joinToString(separator = ",") { it.name }
     }
 
     @TypeConverter
-    fun toReactionList(value: String?): Set<MovieReaction> {
-        if (value.isNullOrBlank()) return emptySet()
-        return json.decodeFromString(value)
+    fun toReactionList(value: String): Set<MovieReaction> {
+        return value.split(",").mapNotNull {
+            try {
+                MovieReaction.valueOf(it)
+            } catch (e: IllegalArgumentException) {
+                null // Handle unknown enum values gracefully
+            }
+        }.toSet()
     }
 }

@@ -1,5 +1,6 @@
 package com.labs.systemdesignandroid.core.ui.composables.screenMovie
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedButton
@@ -17,7 +18,8 @@ import com.labs.systemdesignandroid.domain.MovieReaction
 fun MovieReactionBar(
     reactions: Set<MovieReaction>,
     onReact: (MovieReaction, Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    TAG: String = "abhi.MRB"
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -33,13 +35,12 @@ fun MovieReactionBar(
         }
 
         if (expanded) {
-            FloatingReactionBar(
-                onReact = { reaction ->
-                    val selected = reaction in reactions
-                    onReact(reaction, selected)
-                    expanded = false
-                },
-                onDismiss = { expanded = false })
+            PopUp(onReact = { reaction ->
+                val selected = reaction in reactions
+                Log.d(TAG, "reaction:$reaction $selected")
+                onReact(reaction, selected)
+                expanded = false
+            }, onDismiss = { expanded = false })
         }
     }
 }

@@ -23,6 +23,7 @@ import com.labs.systemdesignandroid.MovieViewModel
 import com.labs.systemdesignandroid.PlaceholderScreen
 import com.labs.systemdesignandroid.Screen
 import com.labs.systemdesignandroid.core.ui.composables.screenMovie.MovieScreen
+import com.labs.systemdesignandroid.core.ui.composables.utils.ExpandableStackedColumnTest
 import com.labs.systemdesignandroid.feature.authentication.composables.AuthRoute
 import com.labs.systemdesignandroid.feature.authentication.composables.ProfileScreen
 import com.labs.systemdesignandroid.feature.authentication.coordinator.AuthCoordinator
@@ -82,7 +83,7 @@ fun MainNavigation(
             beyondViewportPageCount = 1
         ) { page ->
             when (items[page]) {
-                Screen.Home -> PlaceholderScreen("Home Screen")
+                Screen.Home -> ExpandableStackedColumnTest()
                 Screen.Movie -> MovieScreen(
                     viewModel = viewModel,
                     isCurrentPage = pagerState.currentPage == page,

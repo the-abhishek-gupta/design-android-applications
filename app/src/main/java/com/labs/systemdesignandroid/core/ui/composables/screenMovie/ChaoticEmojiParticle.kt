@@ -37,86 +37,86 @@ fun ChaoticEmojiParticle(
     // Swing/wobble offset
     val swingOffset = remember { Animatable(0f) }
 
-    LaunchedEffect(particle.reaction) {
-        // Calculate duration based on velocity
-        val duration = ((particle.targetY - (-100f)) / particle.velocityY * 1000).toInt()
-
-        // Launch all animations in parallel
-        coroutineScope {
-            // Vertical fall with easing
-            launch {
-                animY.animateTo(
-                    particle.targetY, tween(
-                        durationMillis = duration, easing = FastOutSlowInEasing
-                    )
-                )
-            }
-
-            // Horizontal drift with chaotic movement
-            launch {
-                animX.animateTo(
-                    particle.targetX, tween(
-                        durationMillis = duration, easing = LinearEasing
-                    )
-                )
-            }
-
-            // Continuous swing/wobble (cancels when parent scope ends)
-            launch {
-                try {
-                    while (true) {
-                        swingOffset.animateTo(
-                            particle.swingAmplitude, tween(
-                                durationMillis = (500 / particle.swingFrequency).toInt(),
-                                easing = LinearEasing
-                            )
-                        )
-                        swingOffset.animateTo(
-                            -particle.swingAmplitude, tween(
-                                durationMillis = (500 / particle.swingFrequency).toInt(),
-                                easing = LinearEasing
-                            )
-                        )
-                    }
-                } catch (e: Exception) {
-                    // Animation cancelled, that's okay
-                }
-            }
-
-            // Continuous rotation
-            launch {
-                animRotation.animateTo(
-                    particle.rotation + (360f..720f).random() * if (Random.nextBoolean()) 1 else -1,
-                    tween(
-                        durationMillis = duration, easing = LinearEasing
-                    )
-                )
-            }
-
-            // Scale variation during fall
-            launch {
-                animScale.animateTo(
-                    particle.scale * (0.8f..1.2f).random(), tween(
-                        durationMillis = duration / 2, easing = LinearEasing
-                    )
-                )
-                animScale.animateTo(
-                    particle.scale * (0.6f..1f).random(), tween(
-                        durationMillis = duration / 2, easing = LinearEasing
-                    )
-                )
-            }
-
-            // Fade out in the last portion
-            launch {
-                delay((duration * 0.6).toLong())
-                animAlpha.animateTo(0f, tween((duration * 0.4).toInt()))
-            }
-        }
-
-        // All animations complete - notify parent
-        onAnimationComplete()
-    }
+//    LaunchedEffect(particle.reaction) {
+//        // Calculate duration based on velocity
+//        val duration = ((particle.targetY - (-100f)) / particle.velocityY * 1000).toInt()
+//
+//        // Launch all animations in parallel
+//        coroutineScope {
+//            // Vertical fall with easing
+//            launch {
+//                animY.animateTo(
+//                    particle.targetY, tween(
+//                        durationMillis = duration, easing = FastOutSlowInEasing
+//                    )
+//                )
+//            }
+//
+//            // Horizontal drift with chaotic movement
+//            launch {
+//                animX.animateTo(
+//                    particle.targetX, tween(
+//                        durationMillis = duration, easing = LinearEasing
+//                    )
+//                )
+//            }
+//
+//            // Continuous swing/wobble (cancels when parent scope ends)
+//            launch {
+//                try {
+//                    while (true) {
+//                        swingOffset.animateTo(
+//                            particle.swingAmplitude, tween(
+//                                durationMillis = (500 / particle.swingFrequency).toInt(),
+//                                easing = LinearEasing
+//                            )
+//                        )
+//                        swingOffset.animateTo(
+//                            -particle.swingAmplitude, tween(
+//                                durationMillis = (500 / particle.swingFrequency).toInt(),
+//                                easing = LinearEasing
+//                            )
+//                        )
+//                    }
+//                } catch (e: Exception) {
+//                    // Animation cancelled, that's okay
+//                }
+//            }
+//
+//            // Continuous rotation
+//            launch {
+//                animRotation.animateTo(
+//                    particle.rotation + (360f..720f).random() * if (Random.nextBoolean()) 1 else -1,
+//                    tween(
+//                        durationMillis = duration, easing = LinearEasing
+//                    )
+//                )
+//            }
+//
+//            // Scale variation during fall
+//            launch {
+//                animScale.animateTo(
+//                    particle.scale * (0.8f..1.2f).random(), tween(
+//                        durationMillis = duration / 2, easing = LinearEasing
+//                    )
+//                )
+//                animScale.animateTo(
+//                    particle.scale * (0.6f..1f).random(), tween(
+//                        durationMillis = duration / 2, easing = LinearEasing
+//                    )
+//                )
+//            }
+//
+//            // Fade out in the last portion
+//            launch {
+//                delay((duration * 0.6).toLong())
+//                animAlpha.animateTo(0f, tween((duration * 0.4).toInt()))
+//            }
+//        }
+//
+//        // All animations complete - notify parent
+//        onAnimationComplete()
+//    }
 
     Text(
         text = particle.reaction.emoji,

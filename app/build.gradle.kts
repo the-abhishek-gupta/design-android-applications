@@ -66,6 +66,8 @@ dependencies {
     implementation(libs.androidx.hilt.common)
     implementation(libs.androidx.hilt.work)
     implementation(libs.foundation)
+    implementation(libs.androidx.compose.animation.core)
+    implementation(libs.androidx.compose.ui.text)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -106,5 +108,10 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
     implementation("com.google.firebase:firebase-firestore:24.11.0")
+    implementation("androidx.paging:paging-compose:3.2.1")
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose")
+    implementation("androidx.hilt:hilt-navigation-compose")
 
 }

@@ -4,6 +4,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.labs.systemdesignandroid.domain.MovieReaction
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -21,14 +22,16 @@ class FirestoreUserMovieStateRemoteDataSource @Inject constructor(
         firestore.collection("users").document(uid).collection("movie_state")
 
     override suspend fun upsert(
-        uid: String, movieId: Int, favorite: Boolean, watchlist: Boolean, rating: Int
+        uid: String, movieId: Int, favorite: Boolean, watchlist: Boolean, rating: Int, reactions: Set<MovieReaction>
     ) {
+        val reactionNames = reactions.map { it.name } // Convert MovieReaction to String
         col(uid).document(movieId.toString()).set(
             mapOf(
                 "favorite" to favorite,
                 "watchlist" to watchlist,
                 "rating" to rating.coerceIn(0, 5),
-                "updatedAt" to FieldValue.serverTimestamp()
+                "updatedAt" to FieldValue.serverTimestamp(),
+                "reactions" to reactionNames
             ), SetOptions.merge()
         ).await()
     }
@@ -66,11 +69,14 @@ class FirestoreUserMovieStateRemoteDataSource @Inject constructor(
         val fav = getBoolean("favorite") ?: false
         val watch = getBoolean("watchlist") ?: false
         val rating = (getLong("rating") ?: 0L).toInt()
+        val reactionNames = get("reactions") as? List<String> ?: emptyList()
+        val reactions = reactionNames.mapNotNull { MovieReaction.safeValueOf(it) }.toSet() // Safely convert String to MovieReaction
         return UserMovieStateRemote(
             favorite = fav,
             watchlist = watch,
             rating = rating.coerceIn(0, 5),
-            updatedAtMillis = updatedAt
+            updatedAtMillis = updatedAt,
+            reactions = reactions
         )
     }
 

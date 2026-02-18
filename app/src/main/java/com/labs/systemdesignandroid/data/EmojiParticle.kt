@@ -4,14 +4,14 @@ import com.labs.systemdesignandroid.domain.MovieReaction
 
 data class EmojiParticle(
     val reaction: MovieReaction,
-    val x: Float,
-    val targetX: Float,
-    val targetY: Float,
-    val rotation: Float,
-    val velocityX: Float = 0f,
-    val velocityY: Float = 500f,
-    val swingAmplitude: Float = 40f,
-    val swingFrequency: Float = 2f,
-    val scale: Float = 1f,
+    val baseX: Float,
+    var x: Float,          // now in PX
+    var y: Float,          // now in PX
+    var rotation: Float,
+    var velocityX: Float,
+    var velocityY: Float,
+    val swingAmplitude: Float,
+    val swingFrequency: Float,
+    val scale: Float,
     val particleIndex: Int
 )

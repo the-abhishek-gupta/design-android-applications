@@ -1,6 +1,7 @@
 package com.labs.systemdesignandroid.core.ui.composables.screenMovie
 
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
@@ -35,105 +36,113 @@ import com.labs.systemdesignandroid.utils.random
 import kotlinx.coroutines.delay
 
 
-@Composable
-fun FloatingReactionBar(
-    onReact: (MovieReaction) -> Unit, onDismiss: () -> Unit
-) {
-    var particles by remember { mutableStateOf<List<EmojiParticle>>(emptyList()) }
-    var isDismissing by remember { mutableStateOf(false) }
-    var animateItems by remember { mutableStateOf(false) }
-    var particleAnimationsComplete by remember { mutableStateOf(0) }
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(Unit) {
-        animateItems = true
-    }
-
-    // Auto-dismiss when all particles complete
-    LaunchedEffect(particleAnimationsComplete) {
-        if (particleAnimationsComplete > 0 && particleAnimationsComplete >= particles.size) {
-            isDismissing = true
-            delay(300) // Wait for dismiss animation
-            onReact(particles.firstOrNull()?.reaction ?: return@LaunchedEffect)
-        }
-    }
-
-    Popup(
-        onDismissRequest = onDismiss, properties = PopupProperties(focusable = true)
-    ) {
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.7f))
-                .pointerInput(Unit) {
-                    detectTapGestures { onDismiss() }
-                }) {
-
-            val screenWidth = constraints.maxWidth.toFloat()
-            val screenHeight = constraints.maxHeight.toFloat()
-
-            // Particle system - use key for proper recomposition
-            particles.forEach { particle ->
-                key(particle.reaction.hashCode() + particle.particleIndex) {
-                    ChaoticEmojiParticle(
-                        particle = particle,
-                        onAnimationComplete = {
-                            particleAnimationsComplete++
-                        }
-                    )
-                }
-            }
-
-            // Reaction bar
-            AnimatedVisibility(
-                visible = !isDismissing,
-                exit = fadeOut(animationSpec = tween(300)) + scaleOut(animationSpec = tween(300)),
-                modifier = Modifier.align(Alignment.Center)
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    shadowElevation = 10.dp,
-                    color = Color.White.copy(alpha = 0.4f),
-                    modifier = Modifier.pointerInput(Unit) {
-                        detectTapGestures { /* Consume tap */ }
-                    }) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        MovieReaction.entries.forEachIndexed { index, reaction ->
-                            ReactionButton(
-                                reaction = reaction,
-                                index = index,
-                                animateItems = animateItems,
-                                onReactionClick = { clickedReaction ->
-                                    // Reset particle completion counter
-                                    particleAnimationsComplete = 0
-
-                                    // Generate particles
-                                    particles = List(50) { i ->
-                                        val startX =
-                                            (screenWidth * 0.05f..screenWidth * 0.95f).random()
-
-                                        EmojiParticle(
-                                            reaction = clickedReaction,
-                                            particleIndex = i,
-                                            x = startX,
-                                            targetX = startX + (-300f..300f).random(),
-                                            targetY = screenHeight + 100f,
-                                            rotation = (0..360).random().toFloat(),
-                                            velocityX = (-100f..100f).random(),
-                                            velocityY = (300f..800f).random(),
-                                            swingAmplitude = (20f..60f).random(),
-                                            swingFrequency = (1f..3f).random(),
-                                            scale = (0.5f..1.5f).random()
-                                        )
-                                    }
-                                })
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+//@Composable
+//fun FloatingReactionBar(
+//    onReact: (MovieReaction) -> Unit, onDismiss: () -> Unit,
+//    TAG: String = "abhi.FRB"
+//) {
+//    var particles by remember { mutableStateOf<List<EmojiParticle>>(emptyList()) }
+//    var isDismissing by remember { mutableStateOf(false) }
+//    var animateItems by remember { mutableStateOf(false) }
+//    var particleAnimationsComplete by remember { mutableStateOf(0) }
+//    val scope = rememberCoroutineScope()
+//
+//    LaunchedEffect(Unit) {
+//        animateItems = true
+//    }
+//
+//    // Auto-dismiss when all particles complete
+//    LaunchedEffect(particleAnimationsComplete) {
+//        if (particleAnimationsComplete > 0 && particleAnimationsComplete >= particles.size) {
+//            isDismissing = true
+//            delay(300) // Wait for dismiss animation
+//
+//            Log.d(TAG, "reaction: ${particles.firstOrNull()?.reaction}")
+//            onReact(particles.firstOrNull()?.reaction ?: return@LaunchedEffect)
+//        }
+//    }
+//
+//    Popup(
+//        onDismissRequest = onDismiss, properties = PopupProperties(focusable = true)
+//    ) {
+//        BoxWithConstraints(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .background(Color.Black.copy(alpha = 0.7f))
+//                .pointerInput(Unit) {
+//                    detectTapGestures { onDismiss() }
+//                })
+//        {
+//
+//            val screenWidth = constraints.maxWidth.toFloat()
+//            val screenHeight = constraints.maxHeight.toFloat()
+//
+//            // Particle system - use key for proper recomposition
+//            particles.forEach { particle ->
+//                key(particle.reaction.hashCode() + particle.particleIndex) {
+//                    ChaoticEmojiParticle(
+//                        particle = particle,
+//                        onAnimationComplete = {
+//                            particleAnimationsComplete++
+//                        }
+//                    )
+//                }
+//            }
+//
+//            // Reaction bar
+//            AnimatedVisibility(
+//                visible = !isDismissing,
+//                exit = fadeOut(animationSpec = tween(300)) + scaleOut(animationSpec = tween(300)),
+//                modifier = Modifier.align(Alignment.Center)
+//            ) {
+//                Surface(
+//                    shape = RoundedCornerShape(50.dp),
+//                    shadowElevation = 10.dp,
+//                    color = Color.White.copy(alpha = 0.4f),
+//                    modifier = Modifier.pointerInput(Unit) {
+//                        detectTapGestures { /* Consume tap */ }
+//                    }) {
+//                    Row(
+//                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+//                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+//                    ) {
+//                        MovieReaction.entries.forEachIndexed { index, reaction ->
+//                            ReactionButton(
+//                                reaction = reaction,
+//                                index = index,
+//                                animateItems = animateItems,
+//                                onReactionClick = { clickedReaction ->
+//                                    Log.d(TAG, "clickedReaction: $clickedReaction")
+//                                    // Reset particle completion counter
+//                                    particleAnimationsComplete = 0
+//
+//                                    // Generate particles
+//                                    particles = List(50) { i ->
+//                                        val startX =
+//                                            (screenWidth * 0.05f..screenWidth * 0.95f).random()
+//
+//                                        EmojiParticle(
+//                                            reaction = clickedReaction,
+//                                            particleIndex = i,
+//                                            x = startX,
+//                                            targetX = startX + (-300f..300f).random(),
+//                                            targetY = screenHeight + 100f,
+//                                            rotation = (0..360).random().toFloat(),
+//                                            velocityX = (-100f..100f).random(),
+//                                            velocityY = (300f..800f).random(),
+//                                            swingAmplitude = (20f..60f).random(),
+//                                            swingFrequency = (1f..3f).random(),
+//                                            scale = (0.5f..1.5f).random()
+//                                        )
+//                                    }
+//                                    onReact(reaction)
+//
+//                                },
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}

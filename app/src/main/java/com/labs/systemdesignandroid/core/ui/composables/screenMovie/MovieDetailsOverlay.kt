@@ -14,27 +14,26 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,15 +48,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.labs.systemdesignandroid.domain.model.MovieModel
+import com.labs.systemdesignandroid.core.ui.composables.utils.ExpandableStackedColumn
+import com.labs.systemdesignandroid.core.ui.composables.utils.GlitterText
 import com.labs.systemdesignandroid.domain.MovieReaction
+import com.labs.systemdesignandroid.domain.model.MovieModel
+import com.labs.systemdesignandroid.feature.comments.ui.CommentsAndRepliesSheet
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDetailsOverlay(
     movie: MovieModel,
@@ -71,192 +72,179 @@ fun MovieDetailsOverlay(
     val scope = rememberCoroutineScope()
 
     val dismissThresholdPx = 280f
+    val reviewThresholdPx = 0f
     val scrollState = rememberScrollState()
+    var reactionTrigger by remember { mutableStateOf<MovieReaction?>(null) }
 
-    // Allow drag-to-dismiss only when description is at top
-    val dragEnabled = scrollState.value == 0
+    var showReviews by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .offset { IntOffset(0, offsetY.value.toInt()) }
-            .graphicsLayer {
-                alpha = 1f - (kotlin.math.abs(offsetY.value) / 1200f).coerceIn(0f, 0.15f)
-            }
-            .draggable(
-                enabled = dragEnabled,
-                orientation = Orientation.Vertical,
-                state = rememberDraggableState { delta ->
-                    scope.launch {
-                        offsetY.snapTo(
-                            (offsetY.value + delta * 0.6f).coerceIn(-600f, 600f)
-                        )
-                    }
-                },
-                onDragStopped = { velocity ->
-                    scope.launch {
-                        if (kotlin.math.abs(offsetY.value) > dismissThresholdPx ||
-                            kotlin.math.abs(velocity) > 1500f
-                        ) {
-                            onDismiss()
-                        } else {
-                            offsetY.animateTo(0f)
-                        }
-                    }
-                }
-            )
-    ) {
-        // Background image
-        AsyncImage(
-            model = movie.imageUrl,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop // better than FillBounds for posters
-        )
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
 
-        // Gradient overlay
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
+
+    // Disable overlay drag when sheet is visible
+    val dragEnabled = scrollState.value == 0 && !isExpanded && !showReviews
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0.4f to Color.Transparent,
-                        0.7f to Color.Black.copy(alpha = 0.8f),
-                        1f to Color.Black
-                    )
-                )
-        )
-
-        StarRating(
-            modifier = Modifier
-                .padding(end = 12.dp, top = 12.dp)
-                .align(Alignment.TopStart),
-            rating = movie.userRating,
-            onRatingChanged = { newRating ->
-                onRate(movie.id, newRating)
-            }
-        )
-
-        // Favorite Button
-        OutlinedButton(
-            onClick = { onToggleFavorite(movie) },
-            modifier = Modifier
-                .padding(end = 12.dp, top = 12.dp)
-                .align(Alignment.TopEnd),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-            border = BorderStroke(1.dp, Color.White),
-            shape = RoundedCornerShape(12.dp)
+                .offset { IntOffset(0, offsetY.value.toInt()) }
+                .graphicsLayer {
+                    alpha = 1f - (kotlin.math.abs(offsetY.value) / 1200f).coerceIn(0f, 0.15f)
+                }
+                .draggable(
+                    enabled = dragEnabled,
+                    orientation = Orientation.Vertical,
+                    state = rememberDraggableState { delta ->
+                        scope.launch {
+                            offsetY.snapTo(
+                                (offsetY.value + delta * 0.6f).coerceIn(-600f, 600f)
+                            )
+                        }
+                    },
+                    onDragStopped = { velocity ->
+                        scope.launch {
+                            if (offsetY.value > dismissThresholdPx) {
+                                onDismiss()
+                            } else if (offsetY.value < reviewThresholdPx) {
+                                offsetY.animateTo(0f)
+                                showReviews = true
+                            } else {
+                                offsetY.animateTo(0f)
+                            }
+                        }
+                    })
         ) {
-            Text(if (movie.isFavorite) "Remove from" else "Mark as", fontWeight = FontWeight.Bold)
-            Spacer(Modifier.width(8.dp))
-            Icon(
-                imageVector = if (movie.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+
+            // Background
+            AsyncImage(
+                model = movie.imageUrl,
                 contentDescription = null,
-                tint = if (movie.isFavorite) Color.Red else LocalContentColor.current
-            )
-        }
-
-        // Content
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(24.dp)
-                .fillMaxWidth()
-        ) {
-            MovieReactionBar(
-                reactions = movie.userReactions,
-                onReact = { reaction, selected ->
-                    onReact(movie.id, reaction, selected)
-                }
-            )
-            Text(
-                text = movie.name,
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
 
-            Spacer(Modifier.height(12.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            // Gradient
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0.4f to Color.Transparent,
+                            0.7f to Color.Black.copy(alpha = 0.8f),
+                            1f to Color.Black
+                        )
+                    )
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Star,
-                        contentDescription = null,
-                        tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = movie.rating.toString(),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Text("${movie.year}", style = MaterialTheme.typography.titleMedium, color = Color.White.copy(alpha = 0.8f))
-                Text("${movie.durationMinutes} min", style = MaterialTheme.typography.titleMedium, color = Color.White.copy(alpha = 0.8f))
+                RainingEmoji(
+                    trigger = reactionTrigger, onAnimationFinished = { reactionTrigger = null })
             }
 
-            Spacer(Modifier.height(12.dp))
 
-            Text(
-                text = movie.genres.joinToString(" • "),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                fontWeight = FontWeight.SemiBold
-            )
+            Column(
 
-            Spacer(Modifier.height(20.dp))
-
-            var expanded by rememberSaveable(movie.id) { mutableStateOf(false) }
-            val desc = movie.description
-
-            Text(
-                text = "$desc $desc $desc $desc $desc ",
-                maxLines = if (expanded) Int.MAX_VALUE else 4,
-                overflow = if (!expanded) TextOverflow.Ellipsis else TextOverflow.Visible,
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.White.copy(alpha = 0.9f),
-                lineHeight = 26.sp,
                 modifier = Modifier
-                    .height(120.dp)
-                    .verticalScroll(scrollState)
-                    .clickable { expanded = !expanded }
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .fillMaxSize()
+                    .align(Alignment.BottomStart)
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Bottom,
             ) {
-                if (movie.isInWatchlist) {
-                    Button(
-                        onClick = { onToggleWatchlist(movie) },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Default.Check, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("In Watchlist", fontWeight = FontWeight.Bold)
-                    }
-                } else {
+
+                Row(modifier = Modifier.fillMaxWidth().offset(y = (-20).dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    // ⭐ Rating
+                    StarRating(
+                        modifier = Modifier
+                            .padding(end = 12.dp, top = 12.dp)
+//                        .align(Alignment.TopStart)
+                        ,
+                        rating = movie.userRating,
+                        onRatingChanged = { newRating ->
+                            onRate(movie.id, newRating)
+                        })
+
+                    // ❤️ Favorite
                     OutlinedButton(
-                        onClick = { onToggleWatchlist(movie) },
-                        modifier = Modifier.weight(1f),
+                        onClick = { onToggleFavorite(movie) },
+                        modifier = Modifier
+                            .padding(end = 12.dp, top = 12.dp)
+//                        .align(Alignment.TopEnd)
+                        ,
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
                         border = BorderStroke(1.dp, Color.White),
                         shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
+                    )
+                    {
+                        Text(
+                            if (movie.isFavorite) "Remove from" else "Mark as",
+                            fontWeight = FontWeight.Bold
+                        )
                         Spacer(Modifier.width(8.dp))
-                        Text("Watchlist", fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = if (movie.isFavorite) Icons.Default.Favorite
+                            else Icons.Default.FavoriteBorder,
+                            contentDescription = null,
+                            tint = if (movie.isFavorite) Color.Red else LocalContentColor.current
+                        )
                     }
                 }
+                Spacer(modifier = Modifier.weight(1f))
+
+                MovieReactionBar(
+                    reactions = movie.userReactions, onReact = { reaction, selected ->
+                        reactionTrigger = reaction
+                        onReact(movie.id, reaction, selected)
+                    })
+                ExpandableStackedColumn(movie)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (movie.isInWatchlist) {
+                        Button(
+                            onClick = { onToggleWatchlist(movie) },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Check, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("In Watchlist", fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        OutlinedButton(
+                            onClick = { onToggleWatchlist(movie) },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                            border = BorderStroke(1.dp, Color.White),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Watchlist", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                GlitterText(
+                    modifier = Modifier
+                        .fillMaxWidth()
+//                        .background(Color.White)
+                        .offset(y = 15.dp)
+                        .clickable(enabled = true, onClick = {
+                            showReviews = true
+                        }), text = " \u2B06\u2B06\u2B06 View Reviews  \u2B06\u2B06\u2B06\u2B06"
+                )
+            }
+        }
+
+
+        if (showReviews) {
+            ModalBottomSheet(onDismissRequest = {
+                showReviews = false
+            }, sheetState = sheetState, dragHandle = null) {
+                CommentsAndRepliesSheet()
             }
         }
     }

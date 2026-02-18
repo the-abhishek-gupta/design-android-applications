@@ -20,7 +20,8 @@ class PushPendingChangesUseCase @Inject constructor(
                 movieId = state.movieId,
                 favorite = state.isFavorite,
                 watchlist = state.isInWatchlist,
-                rating = state.userRating
+                rating = state.userRating,
+                reaction = state.reactions
             )
 
             // Fetch server resolved timestamp (or listener will eventually)

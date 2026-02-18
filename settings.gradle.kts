@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SystemDesignAndroid"
+rootProject.name = "MovieMania"
 include(":app")
  

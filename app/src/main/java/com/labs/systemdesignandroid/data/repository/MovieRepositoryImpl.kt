@@ -1,5 +1,6 @@
 package com.labs.systemdesignandroid.data.repository
 
+import android.util.Log
 import com.labs.systemdesignandroid.data.local.MovieLocalDataSource
 import com.labs.systemdesignandroid.data.local.UserMovieStateEntity
 import com.labs.systemdesignandroid.data.remote.MovieRemoteDataSource
@@ -53,20 +54,23 @@ class MovieRepositoryImpl @Inject constructor(
         val s = local.getUserState(userId = uid, movieId) ?: UserMovieStateEntity(userId = uid, movieId = movieId)
         local.upsertUserState(s.copy(userRating = rating.coerceIn(0, 5), pendingSync = true))
     }
-
+    val TAG = "abhi.MovieRepoImp"
     override suspend fun toggleReaction(
         movieId: Int,
         reaction: MovieReaction,
         isSelected: Boolean
     ) {
+        Log.d(TAG, "toggleReaction: $movieId $reaction $isSelected")
         val userId = auth.uidOrNull() ?: return
         val existingState = local.getUserState(userId, movieId) ?: UserMovieStateEntity(userId = userId, movieId = movieId)
+        Log.d(TAG, "existingState: $existingState")
 
         val newReactions =  if (isSelected) {
             existingState.reactions - reaction
         } else {
             existingState.reactions + reaction
         }
+        Log.d(TAG, "newReactions: $newReactions")
 
         local.upsertUserState(
             existingState.copy(
@@ -87,7 +91,8 @@ class MovieRepositoryImpl @Inject constructor(
                 movieId = state.movieId,
                 favorite = state.isFavorite,
                 watchlist = state.isInWatchlist,
-                rating = state.userRating
+                rating = state.userRating,
+                reaction = state.reactions
             )
 
             // Fetch resolved server timestamp to store remoteUpdatedAt
