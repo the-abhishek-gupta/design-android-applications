@@ -319,3 +319,64 @@ private fun ProfileRow(
             .clickable(onClick = onClick)
     )
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AboutScreen(modifier: Modifier = Modifier) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Scaffold(topBar = {
+        LargeTopAppBar(title = { Text("About MovieMania") })
+    }) { inner ->
+        Column(modifier = modifier.padding(inner).fillMaxSize()) {
+            Text(
+                text = "MovieMania — A Developer's Tour",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(16.dp)
+            )
+
+            Text(
+                text = "MovieMania is an offline-first sample app demonstrating Room, Jetpack Compose, Hilt, Firebase sync, WorkManager and Media3.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            ElevatedCard(modifier = Modifier.padding(16.dp)) {
+                Column(Modifier.padding(12.dp)) {
+                    Text("Key features:", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(8.dp))
+                    Text("• Browse seeded catalog with search, filters and genres.")
+                    Text("• Favorite, watchlist, rate, and react to movies.")
+                    Text("• Sign in with Google/Firebase and sync per-user state.")
+                    Text("• Background sync via WorkManager and deterministic merge rules.")
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Button(
+                onClick = { showDialog = true },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Read full article")
+            }
+
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = { showDialog = false }) { Text("OK") }
+                    },
+                    title = { Text("Read full article") },
+                    text = {
+                        Text("The full feature write-up is included in the repository as FEATURES_MEDIUM_STYLE.md. Open the file in your editor to view the complete article and suggested screenshots.")
+                    }
+                )
+            }
+        }
+    }
+}

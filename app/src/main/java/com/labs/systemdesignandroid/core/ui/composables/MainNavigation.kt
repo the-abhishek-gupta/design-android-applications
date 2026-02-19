@@ -20,12 +20,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.labs.systemdesignandroid.MovieViewModel
-import com.labs.systemdesignandroid.PlaceholderScreen
 import com.labs.systemdesignandroid.Screen
 import com.labs.systemdesignandroid.core.ui.composables.screenMovie.MovieScreen
 import com.labs.systemdesignandroid.core.ui.composables.utils.ExpandableStackedColumnTest
 import com.labs.systemdesignandroid.feature.authentication.composables.AuthRoute
 import com.labs.systemdesignandroid.feature.authentication.composables.ProfileScreen
+import com.labs.systemdesignandroid.feature.authentication.composables.AboutScreen
 import com.labs.systemdesignandroid.feature.authentication.coordinator.AuthCoordinator
 import com.labs.systemdesignandroid.feature.authentication.di.LocalAuthCoordinator
 import com.labs.systemdesignandroid.feature.authentication.repository.GoogleAuthRepository
@@ -95,7 +95,7 @@ fun MainNavigation(
                         )
                     })
 
-                Screen.Settings -> PlaceholderScreen("Settings Screen")
+                Screen.Settings -> AboutScreen()
                 Screen.Profile -> ProfileScreen(authRepo)
             }
         }
